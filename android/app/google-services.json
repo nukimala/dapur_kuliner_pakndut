@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "3241054518",
+    "project_id": "dapur-kuliner-pakndut",
+    "storage_bucket": "dapur-kuliner-pakndut.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:3241054518:android:3bb5f5d3fa85f0deaee397",
+        "android_client_info": {
+          "package_name": "com.example.dapur_kuliner_pakndut"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "3241054518-ck94g6oskki374rurpleuou0clmi0bs4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCC6Dn2nho0x03IZPY4e7Ur-1qV7xUWHFM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "3241054518-ck94g6oskki374rurpleuou0clmi0bs4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "3241054518-05orvrbvj195a4aadoepqmgkc1g4h9qe.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.dapurKulinerPakndut"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
