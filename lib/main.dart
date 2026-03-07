@@ -8,6 +8,7 @@ import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/admin_dashboard.dart';
 import 'screens/buyer_home_screen.dart';
+import 'screens/splash_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFff7e5f)),
         useMaterial3: true,
       ),
-      home: const AuthWrapper(),
+      home: SplashScreen(nextScreen: const AuthWrapper()),
     );
   }
 }
