@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -37,7 +37,9 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
   Future<void> _loadCart() async {
     final items = await _db.getCartItems(_uid);
     int c = 0;
-    for (var i in items) c += i.quantity;
+    for (var i in items) {
+      c += i.quantity;
+    }
     if (mounted) setState(() => _cartCount = c);
   }
 

@@ -1,13 +1,14 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 const _redDark  = Color(0xFF8B1A0A);
 const _orange   = Color(0xFFF5A524);
-const _orangeL  = Color(0xFFFFCA57);
 const _redBtn   = Color(0xFFE8331A);
 const _textBlack = Color(0xFF1C1C1C);
-const _textGray  = Color(0xFF888888);
 const _textMid   = Color(0xFF555555);
+const _green     = Color(0xFF2BB84A);
 
 class BeriUlasanScreen extends StatefulWidget {
   const BeriUlasanScreen({super.key});
@@ -17,10 +18,11 @@ class BeriUlasanScreen extends StatefulWidget {
 
 class _BeriUlasanScreenState extends State<BeriUlasanScreen> {
   int _rating = 4;
-  List<String> _selected = ['Mudah digunakan', 'Harga Terjangkau'];
-  final _textCtrl = TextEditingController(text: 'Aplikasinya sangat mudah digunakan\ndan, sangat memuaskan');
+  final List<String> _selected = ['Mudah digunakan', 'Harga Terjangkau'];
+  final _textCtrl = TextEditingController();
+  bool _isLoading = false;
 
-  final _tags = ['Mudah digunakan', 'Harga Terjangkau', 'Tampilan Menarik', 'CS responsif'];
+  final _tags   = ['Mudah digunakan', 'Harga Terjangkau', 'Tampilan Menarik', 'CS responsif'];
   final _labels = ['Sangat Buruk', 'Buruk', 'Cukup', 'Sangat Bagus', 'Sempurna'];
 
   void _toggleTag(String t) => setState(
@@ -28,6 +30,61 @@ class _BeriUlasanScreenState extends State<BeriUlasanScreen> {
 
   @override
   void dispose() { _textCtrl.dispose(); super.dispose(); }
+
+  Future<void> _kirim() async {
+    final komentar = _textCtrl.text.trim();
+    if (komentar.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Tulis cerita pengalamanmu dulu ya! 😊',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
+        backgroundColor: const Color(0xFFE8331A),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ));
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      await FirebaseFirestore.instance.collection('ulasan').add({
+        'userId':    user?.uid ?? 'anonymous',
+        'userEmail': user?.email ?? '-',
+        'userName':  user?.displayName ?? user?.email?.split('@').first ?? 'Pengguna',
+        'rating':    _rating,
+        'label':     _labels[_rating - 1],
+        'tags':      List<String>.from(_selected),
+        'komentar':  komentar,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Terima kasih atas ulasanmu! ⭐',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
+        backgroundColor: _green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ));
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Gagal mengirim ulasan: $e',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
+        backgroundColor: const Color(0xFFE8331A),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,6 +177,8 @@ class _BeriUlasanScreenState extends State<BeriUlasanScreen> {
               maxLines: 4,
               style: GoogleFonts.nunito(fontSize: 14, color: _textBlack, height: 1.6),
               decoration: InputDecoration(
+                hintText: 'Ceritakan pengalamanmu menggunakan aplikasi ini...',
+                hintStyle: GoogleFonts.nunito(fontSize: 14, color: const Color(0xFFBBBBBB)),
                 filled: true, fillColor: Colors.white,
                 contentPadding: const EdgeInsets.all(16),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
@@ -131,34 +190,33 @@ class _BeriUlasanScreenState extends State<BeriUlasanScreen> {
               ),
             ),
             const SizedBox(height: 18),
-            _orangeBtn('Kirim Ulasan', () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text('Terima kasih atas ulasanmu! ⭐'),
-                backgroundColor: Color(0xFF2BB84A),
-              ));
-              Navigator.pop(context);
-            }),
+
+            // Tombol Kirim
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _kirim,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: _orange,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey.shade300,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                  elevation: 0,
+                ),
+                child: _isLoading
+                    ? const SizedBox(width: 22, height: 22,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                    : Text('Kirim Ulasan',
+                        style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16)),
+              ),
+            ),
           ]),
         )),
       ]),
     );
   }
 }
-
-Widget _orangeBtn(String label, VoidCallback onTap) => SizedBox(
-  width: double.infinity,
-  child: ElevatedButton(
-    style: ElevatedButton.styleFrom(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      backgroundColor: _orange,
-      foregroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-      elevation: 0,
-    ),
-    onPressed: onTap,
-    child: Text(label, style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16)),
-  ),
-);
 
 Widget _blobs() => Stack(children: [
   Positioned(right: -35, top: -55,

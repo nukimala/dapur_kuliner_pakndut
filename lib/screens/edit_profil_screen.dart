@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,6 +15,13 @@ class EditProfilScreen extends StatefulWidget {
   State<EditProfilScreen> createState() => _EditProfilScreenState();
 }
 
+// Pilihan avatar emoji
+const _avatarList = [
+  '👦','👧','🧑','👨','👩','🧔','👴','👵',
+  '🧒','👶','🧑‍💻','👨‍🍳','👩‍🍳','🧑‍🎨','🦸','🦹',
+  '🧙','🧝','🐱','🐶',
+];
+
 class _EditProfilScreenState extends State<EditProfilScreen> {
   final _nameCtrl      = TextEditingController();
   final _panggilanCtrl = TextEditingController();
@@ -22,6 +29,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
   final _teleponCtrl   = TextEditingController();
 
   String _gender   = '';        // 'Laki-laki' | 'Perempuan'
+  String _avatar   = '👤';     // emoji avatar
   DateTime? _birthDate;
   bool _loading = true;
   bool _saving  = false;
@@ -56,6 +64,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
           _panggilanCtrl.text = d['panggilan']  ?? _panggilanCtrl.text;
           _teleponCtrl.text   = d['telepon']    ?? '';
           _gender             = d['gender']     ?? '';
+          _avatar             = d['avatar']     ?? '👤';
           final ts            = d['birthDate'];
           if (ts != null) _birthDate = (ts as dynamic).toDate();
         }
@@ -81,6 +90,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
         'email':     _emailCtrl.text.trim(),
         'telepon':   _teleponCtrl.text.trim(),
         'gender':    _gender,
+        'avatar':    _avatar,
         'birthDate': _birthDate,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -110,7 +120,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
       initialDate: _birthDate ?? DateTime(2000, 1, 1),
       firstDate: DateTime(1940),
       lastDate: now,
-      locale: const Locale('id', 'ID'),
       builder: (ctx, child) => Theme(
         data: ThemeData.light().copyWith(
           colorScheme: const ColorScheme.light(primary: _orange, onPrimary: Colors.white),
@@ -121,6 +130,59 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
       ),
     );
     if (picked != null) setState(() => _birthDate = picked);
+  }
+
+  void _pickAvatar() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          // Handle bar
+          Container(width: 40, height: 4,
+              decoration: BoxDecoration(color: const Color(0xFFDDDDDD), borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: 16),
+          Text('Pilih Avatar', style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w800, color: const Color(0xFF1C1C1C))),
+          const SizedBox(height: 4),
+          Text('Pilih emoji yang mewakilimu!', style: GoogleFonts.nunito(fontSize: 13, color: const Color(0xFF888888))),
+          const SizedBox(height: 16),
+          GridView.count(
+            crossAxisCount: 5,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            children: _avatarList.map((emoji) {
+              final isSelected = emoji == _avatar;
+              return GestureDetector(
+                onTap: () {
+                  setState(() => _avatar = emoji);
+                  Navigator.pop(context);
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  decoration: BoxDecoration(
+                    color: isSelected ? _orange.withValues(alpha: 0.15) : const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected ? _orange : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
+                  child: Center(child: Text(emoji, style: const TextStyle(fontSize: 32))),
+                ),
+              );
+            }).toList(),
+          ),
+        ]),
+      ),
+    );
   }
 
   String _fmtDate(DateTime? d) {
@@ -164,27 +226,33 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                   child: Column(children: [
                     // Avatar card
-                    Container(
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18),
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 10)]),
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: Column(children: [
-                        Stack(children: [
-                          Container(width: 76, height: 76,
-                              decoration: const BoxDecoration(color: Color(0xFFF5C842), shape: BoxShape.circle),
-                              child: const Center(child: Text('👧', style: TextStyle(fontSize: 38)))),
-                          Positioned(bottom: 2, right: 2, child: Container(
-                            width: 24, height: 24,
-                            decoration: BoxDecoration(color: _orange, shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2)),
-                            child: const Center(child: Text('✏', style: TextStyle(fontSize: 12))),
-                          )),
+                    GestureDetector(
+                      onTap: _pickAvatar,
+                      child: Container(
+                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18),
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 10)]),
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        margin: const EdgeInsets.only(bottom: 16),
+                        child: Column(children: [
+                          Stack(children: [
+                            Container(width: 76, height: 76,
+                                decoration: const BoxDecoration(color: Color(0xFFF5F0E0), shape: BoxShape.circle),
+                                child: Center(child: Text(_avatar, style: const TextStyle(fontSize: 42)))),
+                            Positioned(bottom: 2, right: 2, child: Container(
+                              width: 26, height: 26,
+                              decoration: BoxDecoration(color: _orange, shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 2)),
+                              child: const Center(child: Icon(Icons.edit, color: Colors.white, size: 13)),
+                            )),
+                          ]),
+                          const SizedBox(height: 8),
+                          Text('Tap untuk ganti avatar',
+                              style: GoogleFonts.nunito(fontSize: 12, color: _textGray)),
+                          const SizedBox(height: 2),
+                          Text('${_avatarList.length} pilihan tersedia',
+                              style: GoogleFonts.nunito(fontSize: 11, color: _orange, fontWeight: FontWeight.w700)),
                         ]),
-                        const SizedBox(height: 6),
-                        Text('Tap untuk ganti foto',
-                            style: GoogleFonts.nunito(fontSize: 12, color: _textGray)),
-                      ]),
+                      ),
                     ),
 
                     // ── Text fields

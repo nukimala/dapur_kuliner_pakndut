@@ -1,6 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'login_screen.dart';
 
 const _redDark  = Color(0xFF8B1A0A);
 const _orange   = Color(0xFFF5A524);
@@ -67,22 +69,33 @@ class KeluarScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
           child: Column(children: [
             // User card
-            Container(
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.only(bottom: 14),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 10)]),
-              child: Row(children: [
-                Container(width: 50, height: 50,
-                    decoration: const BoxDecoration(color: Color(0xFFF5C842), shape: BoxShape.circle),
-                    child: const Center(child: Text('👧', style: TextStyle(fontSize: 26)))),
-                const SizedBox(width: 14),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(name, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 15, color: _textBlack)),
-                  const SizedBox(height: 2),
-                  Text(email, style: GoogleFonts.nunito(fontSize: 12, color: _textGray)),
-                ]),
-              ]),
+            FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser?.uid ?? '')
+                  .get(),
+              builder: (context, snap) {
+                final avatar = (snap.hasData && snap.data!.exists)
+                    ? ((snap.data!.data() as Map<String, dynamic>?)?['avatar'] as String? ?? '👤')
+                    : '👤';
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 14),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 10)]),
+                  child: Row(children: [
+                    Container(width: 50, height: 50,
+                        decoration: const BoxDecoration(color: Color(0xFFF5F0E0), shape: BoxShape.circle),
+                        child: Center(child: Text(avatar, style: const TextStyle(fontSize: 28)))),
+                    const SizedBox(width: 14),
+                    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(name, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 15, color: _textBlack)),
+                      const SizedBox(height: 2),
+                      Text(email, style: GoogleFonts.nunito(fontSize: 12, color: _textGray)),
+                    ]),
+                  ]),
+                );
+              },
             ),
 
             // Warning
@@ -140,7 +153,16 @@ class KeluarScreen extends StatelessWidget {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
                   elevation: 0,
                 ),
-                onPressed: () { onConfirm(); Navigator.popUntil(context, (r) => r.isFirst); },
+                onPressed: () async {
+                  await FirebaseAuth.instance.signOut();
+                  if (context.mounted) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      (route) => false,
+                    );
+                  }
+                },
                 child: Text('Ya, Keluar Sekarang', style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16)),
               ),
             ),

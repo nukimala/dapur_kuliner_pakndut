@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'ganti_sandi_screen.dart';
+import 'riwayat_login_screen.dart';
 
 const _redDark  = Color(0xFF8B1A0A);
-const _orange   = Color(0xFFF5A524);
 const _green    = Color(0xFF2BB84A);
 const _textBlack = Color(0xFF1C1C1C);
 const _textGray  = Color(0xFF888888);
@@ -21,15 +22,25 @@ class KeamananScreen extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             _sectionLabel('AUTENTIKASI'),
             _card([
-              _menuRow(icon: '🔐', iconBg: const Color(0xFFE8F0FF),
-                  title: 'Kata Sandi', sub: 'Aktif · Terakhir diubah 30 hari lalu',
-                  subColor: _green, last: true),
+              _menuRow(
+                context: context,
+                icon: '🔐', iconBg: const Color(0xFFE8F0FF),
+                title: 'Kata Sandi', sub: 'Aktif · Ubah kata sandi akun',
+                subColor: _green, last: true,
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const GantiSandiScreen())),
+              ),
             ]),
             const SizedBox(height: 18),
             _sectionLabel('AKTIVITAS'),
             _card([
-              _menuRow(icon: '📋', iconBg: const Color(0xFFF0F0F0),
-                  title: 'Riwayat Login', sub: 'Lihat semua perangkat aktif', last: true),
+              _menuRow(
+                context: context,
+                icon: '📋', iconBg: const Color(0xFFF0F0F0),
+                title: 'Riwayat Login', sub: 'Lihat semua aktivitas login', last: true,
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const RiwayatLoginScreen())),
+              ),
             ]),
           ]),
         )),
@@ -49,22 +60,39 @@ Widget _card(List<Widget> rows) => Container(
   child: ClipRRect(borderRadius: BorderRadius.circular(18), child: Column(children: rows)),
 );
 
-Widget _menuRow({required String icon, required Color iconBg, required String title,
-    required String sub, Color? subColor, bool last = false}) {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    decoration: BoxDecoration(border: last ? null : const Border(bottom: BorderSide(color: Color(0xFFF5F5F5)))),
-    child: Row(children: [
-      Container(width: 46, height: 46, decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(14)),
-          child: Center(child: Text(icon, style: const TextStyle(fontSize: 24)))),
-      const SizedBox(width: 14),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 15, color: _textBlack)),
-        const SizedBox(height: 2),
-        Text(sub, style: GoogleFonts.nunito(fontSize: 12, color: subColor ?? _textGray, fontWeight: subColor != null ? FontWeight.w600 : FontWeight.w400)),
-      ])),
-      const Icon(Icons.chevron_right, color: Color(0xFFCCCCCC)),
-    ]),
+Widget _menuRow({
+  required BuildContext context,
+  required String icon,
+  required Color iconBg,
+  required String title,
+  required String sub,
+  required VoidCallback onTap,
+  Color? subColor,
+  bool last = false,
+}) {
+  return InkWell(
+    onTap: onTap,
+    borderRadius: last
+        ? const BorderRadius.only(bottomLeft: Radius.circular(18), bottomRight: Radius.circular(18))
+        : BorderRadius.zero,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        border: last ? null : const Border(bottom: BorderSide(color: Color(0xFFF5F5F5))),
+      ),
+      child: Row(children: [
+        Container(width: 46, height: 46, decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(14)),
+            child: Center(child: Text(icon, style: const TextStyle(fontSize: 24)))),
+        const SizedBox(width: 14),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(title, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 15, color: _textBlack)),
+          const SizedBox(height: 2),
+          Text(sub, style: GoogleFonts.nunito(fontSize: 12, color: subColor ?? _textGray,
+              fontWeight: subColor != null ? FontWeight.w600 : FontWeight.w400)),
+        ])),
+        const Icon(Icons.chevron_right, color: Color(0xFFCCCCCC)),
+      ]),
+    ),
   );
 }
 

@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
 import '../widgets/shared_bottom_nav.dart';
@@ -17,12 +18,35 @@ const _cream    = Color(0xFFF7F0E6);
 const _textBlack = Color(0xFF1C1C1C);
 const _textGray  = Color(0xFF888888);
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String _avatar = '👤';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAvatar();
+  }
+
+  Future<void> _loadAvatar() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (doc.exists && mounted) {
+        setState(() => _avatar = (doc.data()?['avatar'] as String?) ?? '👤');
+      }
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    final user  = FirebaseAuth.instance.currentUser;
     final name  = user?.displayName ?? user?.email?.split('@').first ?? 'Pengguna';
     final email = user?.email ?? '-';
     final phone = (user?.phoneNumber?.isNotEmpty == true) ? user!.phoneNumber! : '-';
@@ -59,18 +83,18 @@ class ProfileScreen extends StatelessWidget {
                       Container(
                         width: 78, height: 78,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF5C842), shape: BoxShape.circle,
+                          color: const Color(0xFFF5F0E0), shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 3),
                           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 10)],
                         ),
-                        child: const Center(child: Text('👧', style: TextStyle(fontSize: 40))),
+                        child: Center(child: Text(_avatar, style: const TextStyle(fontSize: 42))),
                       ),
                       Positioned(bottom: 2, right: 2,
                         child: Container(
                           width: 23, height: 23,
                           decoration: BoxDecoration(color: _orange, shape: BoxShape.circle,
                               border: Border.all(color: Colors.white, width: 2)),
-                          child: const Center(child: Text('✏', style: TextStyle(fontSize: 11))),
+                          child: const Center(child: Icon(Icons.edit, color: Colors.white, size: 11)),
                         ),
                       ),
                     ]),
@@ -96,8 +120,12 @@ class ProfileScreen extends StatelessWidget {
                 _sectionLabel('PROFIL SAYA'),
                 _card([
                   _menuRow(context, icon: '👤', iconBg: const Color(0xFFFFF0DC),
-                      title: 'Edit Profil', sub: 'Nama, Foto dan Info Pribadi',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfilScreen())),
+                      title: 'Edit Profil', sub: 'Nama, Avatar dan Info Pribadi',
+                      onTap: () async {
+                        await Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfilScreen()));
+                        // Reload avatar setelah kembali dari edit profil
+                        _loadAvatar();
+                      },
                       last: true),
                 ]),
 

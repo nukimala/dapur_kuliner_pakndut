@@ -5,7 +5,6 @@ import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'models/user_model.dart';
 import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
 import 'screens/admin_dashboard.dart';
 import 'screens/buyer_home_screen.dart';
 void main() async {
