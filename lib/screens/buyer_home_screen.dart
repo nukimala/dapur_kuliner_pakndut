@@ -30,6 +30,9 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
   final String _uid = FirebaseAuth.instance.currentUser?.uid ?? '';
   int _cartCount = 0;
   int _navIdx = 0;
+  String _searchQuery = '';
+  String _selectedCategory = 'Semua';
+  final List<String> _categories = ['Semua', 'Makanan', 'Minuman'];
 
   @override
   void initState() { super.initState(); _loadCart(); }
@@ -120,13 +123,21 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
                             color: Colors.white.withValues(alpha: 0.18),
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-                          child: Row(children: [
-                            const Icon(Icons.search, color: Colors.white70, size: 18),
-                            const SizedBox(width: 10),
-                            Text('Cari menu favorit kamu...',
-                                style: GoogleFonts.nunito(color: Colors.white60, fontSize: 14)),
-                          ]),
+                          child: TextField(
+                            onChanged: (val) {
+                              setState(() {
+                                _searchQuery = val.toLowerCase();
+                              });
+                            },
+                            style: GoogleFonts.nunito(color: Colors.white),
+                            decoration: InputDecoration(
+                              hintText: 'Cari menu favorit kamu...',
+                              hintStyle: GoogleFonts.nunito(color: Colors.white60, fontSize: 14),
+                              prefixIcon: const Icon(Icons.search, color: Colors.white70, size: 18),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -143,6 +154,46 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text('Kategori',
+                      style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16, color: _textBlack)),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    height: 40,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _categories.length,
+                      itemBuilder: (context, index) {
+                        final cat = _categories[index];
+                        final isSelected = cat == _selectedCategory;
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedCategory = cat;
+                            });
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isSelected ? _orange : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: isSelected ? null : Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: Center(
+                              child: Text(
+                                cat,
+                                style: GoogleFonts.nunito(
+                                  color: isSelected ? Colors.white : _textGray,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   Text('Menu Populer 🔥',
                       style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16, color: _textBlack)),
                   const SizedBox(height: 14),
@@ -164,6 +215,11 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
                       }
                       final menus = snap.data!.docs
                           .map((d) => MenuModel.fromMap(d.data() as Map<String, dynamic>, d.id))
+                          .where((m) {
+                             final matchesQuery = m.name.toLowerCase().contains(_searchQuery);
+                             final matchesCategory = _selectedCategory == 'Semua' || m.category.toLowerCase() == _selectedCategory.toLowerCase();
+                             return matchesQuery && matchesCategory;
+                          })
                           .toList();
                       return Column(
                         children: menus.map((menu) => _MenuCard(
