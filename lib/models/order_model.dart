@@ -50,6 +50,7 @@ class OrderModel {
         'menuId': item.menuId,
         'menuName': item.menu?.name ?? 'Unknown',
         'menuPrice': item.menu?.price ?? 0,
+        'menuCategory': item.menu?.category ?? '',
         'quantity': item.quantity,
       };
     }).toList();
