@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+    import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -56,7 +56,7 @@ class AdminCetakStrukScreen extends StatelessWidget {
           child: StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('orders')
-                .orderBy('createdAt', descending: true)
+                .orderBy('timestamp', descending: true)
                 .snapshots(),
             builder: (ctx, snap) {
               if (snap.connectionState == ConnectionState.waiting) {
@@ -152,8 +152,8 @@ class _OrderCard extends StatelessWidget {
     final items    = List<Map<String, dynamic>>.from(data['items'] ?? []);
     final total    = (data['totalPrice'] ?? 0).toDouble();
     final status   = _statusLabel(data['status'] as String?);
-    final tanggal  = _tanggal(data['createdAt']);
-    final userName = data['userName'] ?? data['userEmail'] ?? 'Pelanggan';
+    final tanggal  = _tanggal(data['createdAt'] ?? data['timestamp']);
+    final userName = data['userName'] ?? data['buyerName'] ?? data['userEmail'] ?? 'Pelanggan';
     final shortId  = orderId.length > 8 ? orderId.substring(0, 8).toUpperCase() : orderId.toUpperCase();
 
     return Container(

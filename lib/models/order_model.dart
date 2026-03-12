@@ -24,9 +24,11 @@ class OrderModel {
     return {
       'buyerUid': buyerUid,
       'buyerName': buyerName,
+      'userName': buyerName, // Added for admin screens compatibility
       'totalPrice': totalPrice,
       'status': status,
       'timestamp': Timestamp.fromDate(timestamp),
+      'createdAt': Timestamp.fromDate(timestamp), // Added for admin screens compatibility
       'items': items,
     };
   }
@@ -35,10 +37,12 @@ class OrderModel {
     return OrderModel(
       id: documentId,
       buyerUid: map['buyerUid'] ?? '',
-      buyerName: map['buyerName'] ?? '',
+      buyerName: map['userName'] ?? map['buyerName'] ?? '',
       totalPrice: (map['totalPrice'] ?? 0).toDouble(),
       status: map['status'] ?? 'Pending',
-      timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      timestamp: (map['createdAt'] as Timestamp?)?.toDate() ?? 
+                 (map['timestamp'] as Timestamp?)?.toDate() ?? 
+                 DateTime.now(),
       items: List<Map<String, dynamic>>.from(map['items'] ?? []),
     );
   }

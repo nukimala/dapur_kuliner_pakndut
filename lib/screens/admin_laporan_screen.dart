@@ -64,7 +64,8 @@ class _AdminLaporanScreenState extends State<AdminLaporanScreen> {
 
   Stream<QuerySnapshot> _stream() => FirebaseFirestore.instance
       .collection('orders')
-      .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(_startDate()))
+      // Use timestamp as base if createdAt is missing in some docs
+      .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(_startDate()))
       .snapshots();
 
   Future<_SalesData> _process(List<QueryDocumentSnapshot> docs) async {
@@ -76,7 +77,9 @@ class _AdminLaporanScreenState extends State<AdminLaporanScreen> {
     for (final doc in docs) {
       final d     = doc.data() as Map<String, dynamic>;
       final items = List<Map<String, dynamic>>.from(d['items'] ?? []);
-      final ts    = (d['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+      final ts    = (d['createdAt'] as Timestamp?)?.toDate() ?? 
+                    (d['timestamp'] as Timestamp?)?.toDate() ?? 
+                    DateTime.now();
       final dayKey = '${ts.day}';
 
       for (final item in items) {
