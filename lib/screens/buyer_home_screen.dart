@@ -88,8 +88,8 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft, end: Alignment.bottomRight,
-                colors: [Color(0xFFD63010), _redDark],
+                begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                colors: [Color(0xFFF91605), Color(0xFF631105)], // matched with login_screen design colors
               ),
             ),
             child: Stack(
@@ -98,30 +98,38 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
                 SafeArea(
                   bottom: false,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 6, 20, 22),
+                    padding: const EdgeInsets.fromLTRB(28, 12, 28, 30),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Selamat Datang 👋',
-                                    style: GoogleFonts.nunito(color: Colors.white70, fontSize: 13)),
-                                Text('Dapur Kuliner Pak Ndut',
-                                    style: GoogleFonts.nunito(color: _white, fontWeight: FontWeight.w900, fontSize: 20)),
-                              ],
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Selamat datang kembali di',
+                                      style: GoogleFonts.nunito(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13, letterSpacing: 0.2)),
+                                  const SizedBox(height: 12),
+                                  Image.asset('assets/icons/logo.png', width: 220, fit: BoxFit.contain),
+                                ],
+                              ),
                             ),
-                            _cartBadge(),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: _cartBadge(),
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 28),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.18),
-                            borderRadius: BorderRadius.circular(14),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))],
                           ),
                           child: TextField(
                             onChanged: (val) {
@@ -129,13 +137,16 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
                                 _searchQuery = val.toLowerCase();
                               });
                             },
-                            style: GoogleFonts.nunito(color: Colors.white),
+                            style: GoogleFonts.nunito(color: _textBlack, fontSize: 16, fontWeight: FontWeight.w700),
                             decoration: InputDecoration(
-                              hintText: 'Cari menu favorit kamu...',
-                              hintStyle: GoogleFonts.nunito(color: Colors.white60, fontSize: 14),
-                              prefixIcon: const Icon(Icons.search, color: Colors.white70, size: 18),
+                              hintText: 'Cari Menu Favoritmu....',
+                              hintStyle: GoogleFonts.nunito(color: Colors.grey.shade400, fontWeight: FontWeight.w800, fontSize: 15),
+                              prefixIcon: Padding(
+                                padding: const EdgeInsets.only(left: 8.0, right: 4.0),
+                                child: Icon(Icons.search, color: Colors.grey.shade400, size: 28),
+                              ),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                             ),
                           ),
                         ),
@@ -155,10 +166,10 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Kategori',
-                      style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16, color: _textBlack)),
-                  const SizedBox(height: 10),
+                      style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 22, color: _textBlack)),
+                  const SizedBox(height: 12),
                   SizedBox(
-                    height: 40,
+                    height: 42,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: _categories.length,
@@ -172,19 +183,22 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
                             });
                           },
                           child: Container(
-                            margin: const EdgeInsets.only(right: 10),
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                            margin: const EdgeInsets.only(right: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                             decoration: BoxDecoration(
                               color: isSelected ? _orange : Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: isSelected ? null : Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(22),
+                              boxShadow: isSelected ? [] : [
+                                BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 2))
+                              ],
                             ),
                             child: Center(
                               child: Text(
                                 cat,
                                 style: GoogleFonts.nunito(
-                                  color: isSelected ? Colors.white : _textGray,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  color: isSelected ? Colors.white : _orange,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
                                 ),
                               ),
                             ),
@@ -193,10 +207,16 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  Text('Menu Populer 🔥',
-                      style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16, color: _textBlack)),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Text('🍽️', style: TextStyle(fontSize: 24)),
+                      const SizedBox(width: 8),
+                      Text('Menu Kami',
+                          style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 22, color: _textBlack)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                   StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance.collection('menus').snapshots(),
                     builder: (context, snap) {
@@ -221,11 +241,22 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
                              return matchesQuery && matchesCategory;
                           })
                           .toList();
-                      return Column(
-                        children: menus.map((menu) => _MenuCard(
-                          menu: menu,
-                          onAdd: () => _addToCart(menu),
-                        )).toList(),
+                      return GridView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 0.85,
+                        ),
+                        itemCount: menus.length,
+                        itemBuilder: (context, index) {
+                          return _MenuCard(
+                            menu: menus[index],
+                            onAdd: () => _addToCart(menus[index]),
+                          );
+                        },
                       );
                     },
                   ),
@@ -245,17 +276,16 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
     onTap: _goToCart,
     child: Stack(clipBehavior: Clip.none, children: [
       Container(
-        width: 38, height: 38,
+        width: 44, height: 44,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.18),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white24),
+          color: Colors.white.withValues(alpha: 0.25),
+          shape: BoxShape.circle,
         ),
-        child: const Icon(Icons.shopping_bag_outlined, color: _white, size: 20),
+        child: const Icon(Icons.shopping_cart, color: _white, size: 24),
       ),
       if (_cartCount > 0)
         Positioned(
-          top: -4, right: -4,
+          top: -2, right: -2,
           child: Container(
             width: 18, height: 18,
             decoration: const BoxDecoration(color: _orange, shape: BoxShape.circle),
@@ -268,14 +298,10 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
 }
 
 Widget _blobs() => Stack(children: [
-  Positioned(right: -35, top: -55,
-      child: Container(width: 170, height: 170,
+  Positioned(right: -60, top: -60,
+      child: Container(width: 280, height: 280,
           decoration: BoxDecoration(shape: BoxShape.circle,
               color: Colors.white.withValues(alpha: 0.07)))),
-  Positioned(right: 75, bottom: 5,
-      child: Container(width: 110, height: 110,
-          decoration: BoxDecoration(shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.05)))),
 ]);
 
 class _MenuCard extends StatelessWidget {
@@ -286,50 +312,64 @@ class _MenuCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: _white, borderRadius: BorderRadius.circular(18),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 10, offset: const Offset(0, 2))],
+        color: _white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            Container(
-              width: 64, height: 64, decoration: BoxDecoration(
-                color: const Color(0xFFFFF3E0), borderRadius: BorderRadius.circular(14)),
-              child: Center(child: Text(
-                menu.imageUrl.isEmpty ? '🍱' : '🍽️',
-                style: const TextStyle(fontSize: 32),
-              )),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
+              child: menu.imageUrl.isNotEmpty
+                  ? Image.network(menu.imageUrl, fit: BoxFit.cover)
+                  : Container(
+                      color: Colors.grey.shade200,
+                      child: Icon(Icons.fastfood, color: Colors.grey.shade400, size: 40),
+                    ),
             ),
-            const SizedBox(width: 14),
-            Expanded(child: Column(
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(menu.name, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 15, color: _textBlack)),
-                const SizedBox(height: 2),
-                Text(menu.description, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.nunito(fontSize: 12, color: _textGray)),
-                const SizedBox(height: 6),
-                Text('Rp. ${menu.price.toStringAsFixed(0)}',
-                    style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: _orange, fontSize: 14)),
-              ],
-            )),
-            GestureDetector(
-              onTap: onAdd,
-              child: Container(
-                width: 36, height: 36,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [_orange, _orangeL]),
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [BoxShadow(color: _orange.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 3))],
+                Text(
+                  menu.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 14, color: _textBlack),
                 ),
-                child: const Icon(Icons.add, color: _white, size: 22),
-              ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Rp. ${menu.price.toStringAsFixed(0)}',
+                        style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: _orange, fontSize: 14),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: onAdd,
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: _orange,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.add, color: _white, size: 20),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -356,10 +396,10 @@ class _BottomNav extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _navItem(0, Icons.home_rounded, Icons.home_outlined, 'Beranda'),
-              _navItem(1, Icons.shopping_bag_rounded, Icons.shopping_bag_outlined, 'Keranjang', badge: cartCount),
-              _navItem(2, Icons.receipt_long_rounded, Icons.receipt_long_outlined, 'Riwayat'),
-              _navItem(3, Icons.person_rounded, Icons.person_outlined, 'Profil'),
+              _navItem(0, Icons.home, Icons.home_outlined, 'Beranda'),
+              _navItem(1, Icons.shopping_cart, Icons.shopping_cart_outlined, 'Keranjang', badge: cartCount),
+              _navItem(2, Icons.library_books, Icons.library_books_outlined, 'Riwayat'),
+              _navItem(3, Icons.person, Icons.person_outline, 'Profil'),
             ],
           ),
         ),
