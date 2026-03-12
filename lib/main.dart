@@ -23,6 +23,10 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  await initializeDateFormatting('id_ID', null);
+  
   runApp(const MyApp());
 }
 
