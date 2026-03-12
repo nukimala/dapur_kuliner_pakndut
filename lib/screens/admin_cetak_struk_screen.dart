@@ -2,6 +2,9 @@
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 const _redDark   = Color(0xFF8B1A0A);
 const _orange    = Color(0xFFF5A524);
@@ -278,6 +281,107 @@ class _StrukSheet extends StatelessWidget {
     return 'Rp ${buf.toString().split('').reversed.join()}';
   }
 
+  Future<void> _generateAndPrintStruk(BuildContext context) async {
+    final pdf = pw.Document();
+
+    final subtotal = items.fold(0.0, (acc, item) {
+      final qty = (item['quantity'] ?? item['qty'] ?? 1) as int;
+      final price = (item['menuPrice'] ?? item['price'] ?? 0).toDouble();
+      return acc + (qty * price);
+    });
+    final tax = subtotal * 0.1;
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: const PdfPageFormat(80 * PdfPageFormat.mm, double.infinity, marginAll: 5 * PdfPageFormat.mm),
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
+            children: [
+              pw.Text('DAPUR KULINER PAK NDUT', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13)),
+              pw.Text('Jl. Raya Pakndut No. 123', style: const pw.TextStyle(fontSize: 8)),
+              pw.SizedBox(height: 5),
+              pw.Text('================================', style: const pw.TextStyle(fontSize: 8)),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('No. Order:', style: const pw.TextStyle(fontSize: 8)),
+                  pw.Text('#$orderId', style: const pw.TextStyle(fontSize: 8)),
+                ],
+              ),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('Tanggal:', style: const pw.TextStyle(fontSize: 8)),
+                  pw.Text(tanggal, style: const pw.TextStyle(fontSize: 8)),
+                ],
+              ),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('Pelanggan:', style: const pw.TextStyle(fontSize: 8)),
+                  pw.Text(userName, style: const pw.TextStyle(fontSize: 8)),
+                ],
+              ),
+              pw.Text('--------------------------------', style: const pw.TextStyle(fontSize: 8)),
+              pw.SizedBox(height: 5),
+              ...items.map((item) {
+                final name = item['menuName'] ?? item['name'] ?? '-';
+                final qty = (item['quantity'] ?? item['qty'] ?? 1) as int;
+                final price = (item['menuPrice'] ?? item['price'] ?? 0).toDouble();
+                return pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(name, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
+                    pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Text('  $qty x ${_fmt(price)}', style: const pw.TextStyle(fontSize: 8)),
+                        pw.Text(_fmt((qty * price).toDouble()), style: const pw.TextStyle(fontSize: 8)),
+                      ],
+                    ),
+                  ],
+                );
+              }),
+              pw.SizedBox(height: 5),
+              pw.Text('--------------------------------', style: const pw.TextStyle(fontSize: 8)),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('Subtotal:', style: const pw.TextStyle(fontSize: 8)),
+                  pw.Text(_fmt(subtotal), style: const pw.TextStyle(fontSize: 8)),
+                ],
+              ),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('PPN (10%):', style: const pw.TextStyle(fontSize: 8)),
+                  pw.Text(_fmt(tax), style: const pw.TextStyle(fontSize: 8)),
+                ],
+              ),
+              pw.Text('================================', style: const pw.TextStyle(fontSize: 8)),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('TOTAL', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                  pw.Text(_fmt(total), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                ],
+              ),
+              pw.SizedBox(height: 10),
+              pw.Text('Terima kasih sudah makan di sini! 😊', style: const pw.TextStyle(fontSize: 7), textAlign: pw.TextAlign.center),
+              pw.Text('Selamat menikmati — Dapur Kuliner Pak Ndut', style: const pw.TextStyle(fontSize: 6), textAlign: pw.TextAlign.center),
+            ],
+          );
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+      name: 'Struk_$orderId.pdf',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final subtotal = items.fold(0.0, (acc, item) {
@@ -385,17 +489,7 @@ class _StrukSheet extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text('🖨️ Struk dikirim ke printer',
-                          style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
-                      backgroundColor: const Color(0xFF2E7D32),
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      margin: const EdgeInsets.all(16),
-                    ));
-                  },
+                  onPressed: () => _generateAndPrintStruk(context),
                   icon: const Icon(Icons.print, size: 18),
                   label: Text('Cetak', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                   style: ElevatedButton.styleFrom(
