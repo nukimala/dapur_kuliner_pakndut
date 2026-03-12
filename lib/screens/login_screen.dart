@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
@@ -6,8 +6,6 @@ import 'register_screen.dart';
 import 'admin_dashboard.dart';
 import 'buyer_home_screen.dart';
 import 'reset_password_screen.dart';
-
-
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,9 +20,12 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  static const _red = Color(0xFFCC2A2A);
-  static const _orange = Color(0xFFF5A623);
-  static const _orange2 = Color(0xFFE8920A);
+  static const _redTopLeft = Color(0xFFF91605);
+  static const _redBottomRight = Color(0xFF631105);
+  static const _orange = Color(0xFFF09E18);
+  static const _bgCream = Color(0xFFF9F2E7);
+  static const _textDark = Color(0xFF282828);
+  static const _textGrey = Color(0xFFC0BAB2);
 
   void _login() async {
     setState(() => _isLoading = true);
@@ -100,128 +101,187 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F2EC),
+      backgroundColor: _bgCream,
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [_red, Color(0xFF8B1010), Color(0xFF5A0A0A)],
-                ),
-              ),
-              width: double.infinity,
-              padding: const EdgeInsets.only(top: 80, bottom: 50, left: 28, right: 28),
-              child: Column(
-                children: [
-                  Container(
-                    width: 88, height: 88,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [_orange, _orange2]),
-                      shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: _orange.withValues(alpha: 0.4), blurRadius: 24, offset: const Offset(0, 8))],
+            Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [_redTopLeft, _redBottomRight],
                     ),
-                    child: const Center(child: Text('🧑‍🍳', style: TextStyle(fontSize: 40))),
                   ),
-                  const SizedBox(height: 16),
-                  Text('Dapur Kuliner\nPak Ndut', textAlign: TextAlign.center, style: GoogleFonts.nunito(fontSize: 24, color: Colors.white, fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 6),
-                  Text('Dapur Rasa Lokal, Kualitas Bintang Lima ⭐',
-                      style: GoogleFonts.nunito(color: Colors.white70, fontSize: 12)),
-                ],
-              ),
+                  padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 40, bottom: 30, left: 24, right: 24),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 130, height: 130,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: const DecorationImage(
+                            image: AssetImage('assets/icons/pakndut.png'),
+                            fit: BoxFit.cover,
+                          ),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 15, offset: const Offset(0, 5)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text('Login', style: GoogleFonts.nunito(fontSize: 34, color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                      const SizedBox(height: 2),
+                      Text('Dapur Kuliner Pak Ndut', textAlign: TextAlign.center, style: GoogleFonts.nunito(fontSize: 18, color: _orange, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                      const SizedBox(height: 6),
+                      Text('Dapur Rasa Lokal, Kualitas Bintang Lima ⭐',
+                          style: GoogleFonts.nunito(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: -60,
+                  right: -60,
+                  child: Container(
+                    width: 300,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.05),
+                    ),
+                  ),
+                ),
+              ],
             ),
 
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Email', style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.6)),
-                  const SizedBox(height: 7),
+                  Text('EMAIL / NO. WHATSAPP', style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900, color: _textDark, letterSpacing: 0.5)),
+                  const SizedBox(height: 10),
                   _buildInputField(controller: _emailController, hint: 'Masukkan email kamu',
-                      icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
-                  const SizedBox(height: 14),
-                  Text('Kata Sandi', style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.6)),
-                  const SizedBox(height: 7),
+                      iconPath: Icons.email, keyboardType: TextInputType.emailAddress),
+                  const SizedBox(height: 20),
+                  
+                  Text('KATA SANDI', style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900, color: _textDark, letterSpacing: 0.5)),
+                  const SizedBox(height: 10),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white, borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFF0EBE3), width: 2),
-                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+                      color: Colors.white, borderRadius: BorderRadius.circular(16),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
                     ),
                     child: Row(
                       children: [
-                        const SizedBox(width: 16),
-                        const Icon(Icons.lock_outline, color: Color(0xFFBFB8B0), size: 20),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 18),
+                        const Icon(Icons.lock, color: _textGrey, size: 22),
+                        const SizedBox(width: 14),
                         Expanded(
                           child: TextField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
+                            style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w800, color: _textDark),
                             decoration: InputDecoration(
                               hintText: '••••••••',
-                              hintStyle: GoogleFonts.nunito(color: const Color(0xFFBFB8B0), fontSize: 13),
+                              hintStyle: GoogleFonts.nunito(color: _textGrey, fontSize: 18, letterSpacing: 3),
                               border: InputBorder.none, isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(vertical: 20),
                             ),
                           ),
                         ),
                         IconButton(
                           icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                              color: const Color(0xFFBFB8B0), size: 18),
+                              color: _textGrey, size: 22),
                           onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                         ),
+                        const SizedBox(width: 8),
                       ],
                     ),
                   ),
 
+                  const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
                       onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ResetPasswordScreen())),
-                      child: Text('Lupa Kata Sandi?', style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: _orange2)),
+                      child: Text('Lupa Kata Sandi?', style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w900, color: _orange)),
                     ),
                   ),
 
-                  SizedBox(
-                    width: double.infinity, height: 52,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(colors: [_orange, _orange2]),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [BoxShadow(color: _orange.withValues(alpha: 0.45), blurRadius: 20, offset: const Offset(0, 6))],
+                  const SizedBox(height: 28),
+                  Container(
+                    width: double.infinity, height: 56,
+                    decoration: BoxDecoration(
+                      color: _orange,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [BoxShadow(color: _orange.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 5))],
+                    ),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent, shadowColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
-                        onPressed: _isLoading ? null : _login,
-                        child: _isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : Text('🚀 Masuk Sekarang', style: GoogleFonts.nunito(fontSize: 16, color: Colors.white, letterSpacing: 0.5, fontWeight: FontWeight.w900)),
-                      ),
+                      onPressed: _isLoading ? null : _login,
+                      child: _isLoading
+                          ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : Text('Masuk Sekarang', style: GoogleFonts.nunito(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w900)),
                     ),
                   ),
+                  
+                  const SizedBox(height: 32),
+                  Center(child: Text('atau masuk dengan', style: GoogleFonts.nunito(fontSize: 13, color: _textGrey, fontWeight: FontWeight.w800))),
                   const SizedBox(height: 20),
+                  
+                  Container(
+                    width: double.infinity, height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
+                    ),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      onPressed: () {
+                        // Google Login placeholder
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Login Google belum diimplementasi')));
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildGoogleIcon(),
+                          const SizedBox(width: 12),
+                          Text('Google', style: GoogleFonts.nunito(fontSize: 16, color: _textDark, fontWeight: FontWeight.w900)),
+                        ],
+                      ),
+                    ),
+                  ),
 
+                  const SizedBox(height: 32),
                   Center(
                     child: GestureDetector(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
-                      child: RichText(
-                        text: TextSpan(
-                          style: GoogleFonts.nunito(fontSize: 13, color: const Color(0xFF9A9A9A)),
-                          children: [
-                            const TextSpan(text: 'Belum punya akun? '),
-                            TextSpan(text: 'Daftar Sekarang', style: GoogleFonts.nunito(color: _orange2, fontWeight: FontWeight.w800)),
-                          ],
-                        ),
-                      ),
+                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
+                       child: RichText(
+                         text: TextSpan(
+                           style: GoogleFonts.nunito(fontSize: 13, color: _textGrey, fontWeight: FontWeight.w800),
+                           children: [
+                             const TextSpan(text: 'Belum punya akun? '),
+                             TextSpan(text: 'Daftar Sekarang', style: GoogleFonts.nunito(color: _orange, fontWeight: FontWeight.w900)),
+                           ],
+                         ),
+                       ),
                     ),
                   ),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
@@ -234,32 +294,53 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildInputField({
     required TextEditingController controller,
     required String hint,
-    required IconData icon,
+    required IconData iconPath,
     TextInputType keyboardType = TextInputType.text,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white, borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFF0EBE3), width: 2),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+        color: Colors.white, borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Row(
         children: [
-          const SizedBox(width: 16),
-          Icon(icon, color: const Color(0xFFBFB8B0), size: 20),
-          const SizedBox(width: 10),
+          const SizedBox(width: 18),
+          Icon(iconPath, color: _textGrey, size: 22),
+          const SizedBox(width: 14),
           Expanded(
             child: TextField(
               controller: controller, keyboardType: keyboardType,
+              style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w800, color: _textDark),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: GoogleFonts.nunito(color: const Color(0xFFBFB8B0), fontSize: 13),
+                hintStyle: GoogleFonts.nunito(color: _textGrey, fontSize: 15, fontWeight: FontWeight.w800),
                 border: InputBorder.none, isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(vertical: 20),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildGoogleIcon() {
+    return Container(
+      width: 24, height: 24,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+      ),
+      child: const Center(
+        child: Text(
+          'G',
+          style: TextStyle(
+            color: Color(0xFFEA4335), // Google Red
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            fontFamily: 'Roboto',
+          ),
+        )
       ),
     );
   }
