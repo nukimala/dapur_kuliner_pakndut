@@ -42,49 +42,46 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     } catch (e) {
-      if (mounted) {
-        if (e.toString().contains('email-not-verified')) {
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Verifikasi Email'),
-              content: const Text('Kamu perlu verifikasi email terlebih dahulu.\nApakah kamu ingin dikirimkan verifikasi ulang?'),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Tidak, kembali')),
-                TextButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    try {
-                      await FirebaseAuth.instance.signInWithEmailAndPassword(
-                        email: _emailController.text.trim(),
-                        password: _passwordController.text.trim(),
-                      );
-                      final firebaseUser = FirebaseAuth.instance.currentUser;
-                      if (firebaseUser != null) await firebaseUser.sendEmailVerification();
-                      await FirebaseAuth.instance.signOut();
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Email verifikasi ulang telah dikirim!'), backgroundColor: Colors.green),
-                        );
-                      }
-                    } catch (resendErr) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $resendErr'), backgroundColor: Colors.red),
-                        );
-                      }
-                    }
-                  },
-                  child: const Text('Kirim ulang'),
-                ),
-              ],
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString()), backgroundColor: Colors.redAccent),
-          );
-        }
+      if (!mounted) return;
+      if (e.toString().contains('email-not-verified')) {
+        showDialog(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Verifikasi Email'),
+            content: const Text('Kamu perlu verifikasi email terlebih dahulu.\nApakah kamu ingin dikirimkan verifikasi ulang?'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Tidak, kembali')),
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(dialogContext);
+                  try {
+                    await FirebaseAuth.instance.signInWithEmailAndPassword(
+                      email: _emailController.text.trim(),
+                      password: _passwordController.text.trim(),
+                    );
+                    final firebaseUser = FirebaseAuth.instance.currentUser;
+                    if (firebaseUser != null) await firebaseUser.sendEmailVerification();
+                    await FirebaseAuth.instance.signOut();
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Email verifikasi ulang telah dikirim!'), backgroundColor: Colors.green),
+                    );
+                  } catch (resendErr) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $resendErr'), backgroundColor: Colors.red),
+                    );
+                  }
+                },
+                child: const Text('Kirim ulang'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.redAccent),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,7 +12,6 @@ import '../nav_helper.dart';
 const _red      = Color(0xFFC0321A);
 const _redDark  = Color(0xFF8B1A0A);
 const _orange   = Color(0xFFF5A524);
-const _orangeL  = Color(0xFFFFCA57);
 const _cream    = Color(0xFFF7F0E6);
 const _textBlack = Color(0xFF1C1C1C);
 const _textGray  = Color(0xFF888888);
@@ -262,7 +261,7 @@ class _CartScreenState extends State<CartScreen> {
                                   child: SizedBox(width: 88, height: 88,
                                     child: menu.imageUrl.isNotEmpty
                                         ? Image.network(menu.imageUrl, fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) => _foodEmoji())
+                                            errorBuilder: (_, _, _) => _foodEmoji())
                                         : _foodEmoji(),
                                   ),
                                 ),

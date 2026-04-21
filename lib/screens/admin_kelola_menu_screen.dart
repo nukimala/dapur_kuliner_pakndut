@@ -176,7 +176,7 @@ class _AdminKelolaMenuScreenState extends State<AdminKelolaMenuScreen> {
                       borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
                       child: item.imageUrl.isNotEmpty
                           ? Image.network(item.imageUrl, width: 88, height: 80, fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(width: 88, height: 80,
+                              errorBuilder: (_, _, _) => Container(width: 88, height: 80,
                                 color: const Color(0xFFFFF4E0),
                                 child: const Center(child: Text('🍽️', style: TextStyle(fontSize: 30)))))
                           : Container(width: 88, height: 80,

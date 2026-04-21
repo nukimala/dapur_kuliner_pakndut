@@ -138,7 +138,7 @@ class _AdminEditMenuScreenState extends State<AdminEditMenuScreen> {
                 borderRadius: BorderRadius.circular(16),
                 child: widget.menu.imageUrl.isNotEmpty
                     ? Image.network(widget.menu.imageUrl, width: double.infinity, height: 175, fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(width: double.infinity, height: 175,
+                        errorBuilder: (_, _, _) => Container(width: double.infinity, height: 175,
                           color: const Color(0xFFFFF4E0),
                           child: const Center(child: Text('🍽️', style: TextStyle(fontSize: 48)))))
                     : Container(width: double.infinity, height: 175,
