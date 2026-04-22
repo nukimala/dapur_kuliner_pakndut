@@ -1,6 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
+import 'login_screen.dart';
 import 'admin_kelola_menu_screen.dart';
 import 'admin_laporan_screen.dart';
 import 'admin_ulasan_screen.dart';
@@ -140,7 +141,16 @@ class AdminDashboard extends StatelessWidget {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () async => await AuthService().signOut(),
+                        onTap: () async {
+                          await AuthService().signOut();
+                          if (context.mounted) {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (_) => const LoginScreen()),
+                              (route) => false,
+                            );
+                          }
+                        },
                         child: Container(
                           width: 42, height: 42,
                           decoration: BoxDecoration(
