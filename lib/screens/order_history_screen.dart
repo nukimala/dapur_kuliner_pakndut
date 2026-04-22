@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,7 +8,6 @@ import '../widgets/shared_bottom_nav.dart';
 import '../nav_helper.dart';
 import 'cart_screen.dart';
 
-const _red      = Color(0xFFC0321A);
 const _redDark  = Color(0xFF8B1A0A);
 const _orange   = Color(0xFFF5A524);
 const _orangeL  = Color(0xFFFFCA57);
@@ -37,7 +36,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       await _db.addToCart(CartItemModel(menuId: menuId, quantity: qty, userUid: _uid));
       added = true;
     }
-    if (!mounted) return;
+    if (!ctx.mounted) return;
     if (added) {
       ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
         content: Text('Item ditambahkan ke keranjang! 🛒',
@@ -48,7 +47,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         duration: const Duration(seconds: 1),
       ));
       await Future.delayed(const Duration(milliseconds: 900));
-      if (mounted) {
+      if (ctx.mounted) {
         Navigator.push(ctx, MaterialPageRoute(builder: (_) => const CartScreen()));
       }
     }

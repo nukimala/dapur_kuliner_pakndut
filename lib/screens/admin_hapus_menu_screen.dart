@@ -120,7 +120,7 @@ class _AdminHapusMenuScreenState extends State<AdminHapusMenuScreen> {
                   borderRadius: BorderRadius.circular(12),
                   child: widget.menu.imageUrl.isNotEmpty
                       ? Image.network(widget.menu.imageUrl, width: 68, height: 62, fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(width: 68, height: 62,
+                          errorBuilder: (_, _, _) => Container(width: 68, height: 62,
                             color: const Color(0xFFFFF4E0),
                             child: const Center(child: Text('🍽️', style: TextStyle(fontSize: 28)))))
                       : Container(width: 68, height: 62,

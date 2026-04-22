@@ -6,7 +6,6 @@ import 'login_screen.dart';
 
 const _redDark  = Color(0xFF8B1A0A);
 const _orange   = Color(0xFFF5A524);
-const _orangeL  = Color(0xFFFFCA57);
 const _redBtn   = Color(0xFFE8331A);
 const _textBlack = Color(0xFF1C1C1C);
 const _textGray  = Color(0xFF888888);

@@ -50,8 +50,8 @@ class _SplashScreenState extends State<SplashScreen>
       if (mounted) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => widget.nextScreen,
-            transitionsBuilder: (_, animation, __, child) {
+            pageBuilder: (_, _, _) => widget.nextScreen,
+            transitionsBuilder: (_, animation, _, child) {
               return FadeTransition(opacity: animation, child: child);
             },
             transitionDuration: const Duration(milliseconds: 500),
@@ -96,7 +96,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 220,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.06),
+                  color: Colors.white.withValues(alpha: 0.06),
                 ),
               ),
             ),
@@ -109,7 +109,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 150,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                 ),
               ),
             ),
@@ -122,7 +122,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 180,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withValues(alpha: 0.05),
                 ),
               ),
             ),
@@ -135,7 +135,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 200,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.black.withOpacity(0.07),
+                  color: Colors.black.withValues(alpha: 0.07),
                 ),
               ),
             ),
@@ -158,9 +158,9 @@ class _SplashScreenState extends State<SplashScreen>
                       );
                     },
                     child: Image.asset(
-                      'assets/icons/app_icon.png',
-                      width: 220,
-                      height: 220,
+                      'assets/icons/Screenawal.png',
+                      width: 320,
+                      height: 320,
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -176,16 +176,6 @@ class _SplashScreenState extends State<SplashScreen>
                         child: child,
                       );
                     },
-                    child: const Text(
-                      'Dapur Rasa Lokal, Kualitas Bintang Lima ⭐',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.3,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
                   ),
                 ],
               ),

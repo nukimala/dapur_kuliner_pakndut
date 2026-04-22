@@ -11,9 +11,8 @@ import 'profile_screen.dart';
 
 // ── Design tokens
 const _red      = Color(0xFFC0321A);
-const _redDark  = Color(0xFF8B1A0A); 
+
 const _orange   = Color(0xFFF5A524);
-const _orangeL  = Color(0xFFFFCA57);
 const _cream    = Color(0xFFF7F0E6);
 const _white    = Colors.white;
 const _textBlack = Color(0xFF1C1C1C);
@@ -73,10 +72,7 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
     if (idx == 3) { Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())); return; }
   }
 
-  String get _userName {
-    final u = FirebaseAuth.instance.currentUser;
-    return u?.displayName ?? u?.email?.split('@').first ?? 'Pengguna';
-  }
+
 
   @override
   Widget build(BuildContext context) {

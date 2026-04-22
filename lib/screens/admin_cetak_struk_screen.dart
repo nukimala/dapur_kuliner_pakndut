@@ -219,7 +219,7 @@ class _OrderCard extends StatelessWidget {
                     color: const Color(0xFFD63010))),
           ]),
           ElevatedButton.icon(
-            onPressed: () => _showStrukPreview(context, shortId, items, total, tanggal, userName),
+            onPressed: () => _showStrukPreview(context, orderId, items, total, tanggal, userName),
             icon: const Icon(Icons.print_outlined, size: 16),
             label: Text('Cetak', style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 13)),
             style: ElevatedButton.styleFrom(
@@ -283,6 +283,7 @@ class _StrukSheet extends StatelessWidget {
 
   Future<void> _generateAndPrintStruk(BuildContext context) async {
     final pdf = pw.Document();
+    final shortId = orderId.length > 8 ? orderId.substring(0, 8).toUpperCase() : orderId.toUpperCase();
 
     final subtotal = items.fold(0.0, (acc, item) {
       final qty = (item['quantity'] ?? item['qty'] ?? 1) as int;
@@ -306,7 +307,7 @@ class _StrukSheet extends StatelessWidget {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text('No. Order:', style: const pw.TextStyle(fontSize: 8)),
-                  pw.Text('#$orderId', style: const pw.TextStyle(fontSize: 8)),
+                  pw.Text('#$shortId', style: const pw.TextStyle(fontSize: 8)),
                 ],
               ),
               pw.Row(
@@ -376,14 +377,43 @@ class _StrukSheet extends StatelessWidget {
       ),
     );
 
-    await Printing.layoutPdf(
+    final bool printed = await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdf.save(),
-      name: 'Struk_$orderId.pdf',
+      name: 'Struk_$shortId.pdf',
     );
+
+    if (printed) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('orders')
+            .doc(orderId)
+            .update({'status': 'Selesai'});
+        
+        if (context.mounted) {
+          Navigator.pop(context); // Tutup popup preview struk
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Struk berhasil dicetak. Pesanan selesai!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal mengubah status: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final shortId = orderId.length > 8 ? orderId.substring(0, 8).toUpperCase() : orderId.toUpperCase();
     final subtotal = items.fold(0.0, (acc, item) {
       final qty   = (item['quantity'] ?? item['qty'] ?? 1) as int;
       final price = (item['menuPrice'] ?? item['price'] ?? 0).toDouble();
@@ -423,7 +453,7 @@ class _StrukSheet extends StatelessWidget {
                     fontSize: 15, color: const Color(0xFFD63010))),
             Text('================================',
                 style: GoogleFonts.sourceCodePro(fontSize: 12, color: _textGray)),
-            _row2('No. Order:', '#$orderId'),
+            _row2('No. Order:', '#$shortId'),
             _row2('Tanggal:', tanggal),
             _row2('Pelanggan:', userName),
             Text('--------------------------------',

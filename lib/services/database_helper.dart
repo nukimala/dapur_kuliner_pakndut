@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -91,7 +92,7 @@ class DatabaseHelper {
                await removeCartItem(item.id!);
            }
        } catch (e) {
-           print("Error fetching menu for cart item: $e");
+           debugPrint("Error fetching menu for cart item: $e");
            // Add without populated menu if offline/error, handled by UI
            cartItems.add(item); 
        }
