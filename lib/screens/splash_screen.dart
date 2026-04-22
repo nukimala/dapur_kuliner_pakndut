@@ -158,9 +158,9 @@ class _SplashScreenState extends State<SplashScreen>
                       );
                     },
                     child: Image.asset(
-                      'assets/icons/app_icon.png',
-                      width: 220,
-                      height: 220,
+                      'assets/icons/Screenawal.png',
+                      width: 320,
+                      height: 320,
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -176,16 +176,6 @@ class _SplashScreenState extends State<SplashScreen>
                         child: child,
                       );
                     },
-                    child: const Text(
-                      'Dapur Rasa Lokal, Kualitas Bintang Lima ⭐',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.3,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
                   ),
                 ],
               ),
