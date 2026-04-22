@@ -205,7 +205,7 @@ class _UlasanCardState extends State<_UlasanCard> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Gagal mengirim balasan: $e'),
+          content: Text('Gagal mengirim balasan: $e'), 
           backgroundColor: Colors.red,
         ));
       }
