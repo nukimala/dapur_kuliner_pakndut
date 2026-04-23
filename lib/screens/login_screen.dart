@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
+import '../theme/app_theme.dart';
 import 'register_screen.dart';
 import 'admin_dashboard.dart';
 import 'buyer_home_screen.dart';
@@ -20,12 +21,12 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  static const _redTopLeft = Color(0xFFF91605);
-  static const _redBottomRight = Color(0xFF631105);
-  static const _orange = Color(0xFFF09E18);
-  static const _bgCream = Color(0xFFF9F2E7);
-  static const _textDark = Color(0xFF282828);
-  static const _textGrey = Color(0xFFC0BAB2);
+  static const _redTopLeft = AppTheme.redLight;
+  static const _redBottomRight = AppTheme.redDark;
+  static const _orange = AppTheme.orange;
+  static const _bgCream = AppTheme.cream;
+  static const _textDark = AppTheme.textBlack;
+  static const _textGrey = AppTheme.textGray;
 
   void _login() async {
     setState(() => _isLoading = true);
