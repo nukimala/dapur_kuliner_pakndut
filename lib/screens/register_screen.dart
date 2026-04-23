@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
 
@@ -172,16 +172,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(height: 12),
                         _buildPasswordField(_confirmPasswordController, 'Konfirmasi Kata Sandi', _obscureConfirm,
                             () => setState(() => _obscureConfirm = !_obscureConfirm)),
-                        const SizedBox(height: 12),
-                        Text('Daftar Sebagai', style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800)),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            _roleChip('buyer', '🛒 Pembeli'),
-                            const SizedBox(width: 10),
-                            _roleChip('admin', '👨‍💼 Admin'),
-                          ],
-                        ),
+
                       ],
                     ),
                   ),
@@ -308,21 +299,5 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _roleChip(String value, String label) {
-    final isActive = _selectedRole == value;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedRole = value),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? const Color(0xFFCC2A2A) : const Color(0xFFF7F2EC),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: isActive ? const Color(0xFFCC2A2A) : const Color(0xFFF0EBE3), width: 2),
-        ),
-        child: Text(label, style: GoogleFonts.nunito(fontSize: 12, fontWeight: FontWeight.w700,
-            color: isActive ? Colors.white : const Color(0xFF9A9A9A))),
-      ),
-    );
-  }
+
 }
