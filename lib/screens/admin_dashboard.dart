@@ -28,9 +28,41 @@ class _AdminDashboardState extends State<AdminDashboard> {
   StreamSubscription? _ordersSubscription;
   bool _isInitialLoad = true;
 
+  Future<void> _checkAndCompleteOldOrders() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance.collection('orders').get();
+      final now = DateTime.now();
+      
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final status = data['status']?.toString().toLowerCase() ?? 'pending';
+        
+        // Lewati jika sudah selesai atau dibatalkan
+        if (status == 'selesai' || status == 'completed' || status == 'dibatalkan' || status == 'cancelled') {
+          continue;
+        }
+
+        final timestamp = data['timestamp'] as Timestamp?;
+        final createdAt = data['createdAt'] as Timestamp?;
+        final time = timestamp ?? createdAt;
+        
+        if (time != null) {
+          final orderDate = time.toDate();
+          if (now.difference(orderDate).inDays >= 1) {
+            await doc.reference.update({'status': 'Selesai'});
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error auto-completing old orders: $e');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _checkAndCompleteOldOrders(); // Cek pesanan yang lebih dari 1 hari
+    
     _ordersSubscription = FirebaseFirestore.instance
         .collection('orders')
         .where('status', isEqualTo: 'pending')
