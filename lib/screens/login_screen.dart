@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
+import '../theme/app_theme.dart';
 import 'register_screen.dart';
 import 'admin_dashboard.dart';
 import 'buyer_home_screen.dart';
@@ -20,12 +21,12 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  static const _redTopLeft = Color(0xFFF91605);
-  static const _redBottomRight = Color(0xFF631105);
-  static const _orange = Color(0xFFF09E18);
-  static const _bgCream = Color(0xFFF9F2E7);
-  static const _textDark = Color(0xFF282828);
-  static const _textGrey = Color(0xFFC0BAB2);
+  static const _redTopLeft = AppTheme.redLight;
+  static const _redBottomRight = AppTheme.redDark;
+  static const _orange = AppTheme.orange;
+  static const _bgCream = AppTheme.cream;
+  static const _textDark = AppTheme.textBlack;
+  static const _textGrey = AppTheme.textGray;
 
   void _login() async {
     setState(() => _isLoading = true);
@@ -83,6 +84,27 @@ class _LoginScreenState extends State<LoginScreen> {
           SnackBar(content: Text(e.toString()), backgroundColor: Colors.redAccent),
         );
       }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _googleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final user = await _authService.signInWithGoogle();
+      if (user != null && mounted) {
+        if (user.role == 'admin') {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AdminDashboard()));
+        } else {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const BuyerHomeScreen()));
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString()), backgroundColor: Colors.redAccent),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -248,10 +270,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         shadowColor: Colors.transparent,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
-                      onPressed: () {
-                        // Google Login placeholder
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Login Google belum diimplementasi')));
-                      },
+                      onPressed: _isLoading ? null : _googleSignIn,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [

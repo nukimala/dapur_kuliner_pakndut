@@ -8,15 +8,17 @@ import '../services/database_helper.dart';
 import 'cart_screen.dart';
 import 'order_history_screen.dart';
 import 'profile_screen.dart';
+import '../theme/app_theme.dart';
+import 'package:shimmer/shimmer.dart';
 
 // ── Design tokens
-const _red      = Color(0xFFC0321A);
+const _red      = AppTheme.red;
 
-const _orange   = Color(0xFFF5A524);
-const _cream    = Color(0xFFF7F0E6);
-const _white    = Colors.white;
-const _textBlack = Color(0xFF1C1C1C);
-const _textGray  = Color(0xFF888888);
+const _orange   = AppTheme.orange;
+const _cream    = AppTheme.cream;
+const _white    = AppTheme.white;
+const _textBlack = AppTheme.textBlack;
+const _textGray  = AppTheme.textGray;
 
 class BuyerHomeScreen extends StatefulWidget {
   const BuyerHomeScreen({super.key});
@@ -217,10 +219,29 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
                     stream: FirebaseFirestore.instance.collection('menus').snapshots(),
                     builder: (context, snap) {
                       if (snap.connectionState == ConnectionState.waiting) {
-                        return const Center(child: Padding(
-                          padding: EdgeInsets.all(40),
-                          child: CircularProgressIndicator(color: _red),
-                        ));
+                        return GridView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 0.85,
+                          ),
+                          itemCount: 4,
+                          itemBuilder: (context, index) {
+                            return Shimmer.fromColors(
+                              baseColor: Colors.grey.shade300,
+                              highlightColor: Colors.grey.shade100,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                            );
+                          },
+                        );
                       }
                       if (!snap.hasData || snap.data!.docs.isEmpty) {
                         return Center(child: Padding(

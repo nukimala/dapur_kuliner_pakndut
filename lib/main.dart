@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'services/notification_service.dart';
+import 'services/local_notif_service.dart';
 import 'models/user_model.dart';
 import 'screens/login_screen.dart';
 import 'screens/admin_dashboard.dart';
@@ -46,6 +47,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     // Initialize notification service to request permissions
     NotificationService().initialize();
+    LocalNotifService().initialize();
   }
 
   @override

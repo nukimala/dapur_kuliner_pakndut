@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "3241054518-so6ofo675e0tdfj76v8l58pmabg60pt2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.dapur_kuliner_pakndut",
+            "certificate_hash": "bea4455ad963ca1bf7fc7e858b97f673fc161178"
+          }
+        },
+        {
           "client_id": "3241054518-ck94g6oskki374rurpleuou0clmi0bs4.apps.googleusercontent.com",
           "client_type": 3
         }

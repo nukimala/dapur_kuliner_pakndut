@@ -1,19 +1,94 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
+import '../services/local_notif_service.dart';
+import 'login_screen.dart';
 import 'admin_kelola_menu_screen.dart';
 import 'admin_laporan_screen.dart';
 import 'admin_ulasan_screen.dart';
 import 'admin_cetak_struk_screen.dart';
+import '../theme/app_theme.dart';
 
 // ── Warna
-const _redCircle = Color(0xFF9B1005);
-const _cream     = Color(0xFFF5EDE0);
-const _textBlack = Color(0xFF1A1A1A);
+const _redCircle = AppTheme.redDark;
+const _cream     = AppTheme.cream;
+const _textBlack = AppTheme.textBlack;
 
 // ─────────────────────────────────────────────────────────────────────────────
-class AdminDashboard extends StatelessWidget {
+class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
+
+  @override
+  State<AdminDashboard> createState() => _AdminDashboardState();
+}
+
+class _AdminDashboardState extends State<AdminDashboard> {
+  StreamSubscription? _ordersSubscription;
+  bool _isInitialLoad = true;
+
+  Future<void> _checkAndCompleteOldOrders() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance.collection('orders').get();
+      final now = DateTime.now();
+      
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final status = data['status']?.toString().toLowerCase() ?? 'pending';
+        
+        // Lewati jika sudah selesai atau dibatalkan
+        if (status == 'selesai' || status == 'completed' || status == 'dibatalkan' || status == 'cancelled') {
+          continue;
+        }
+
+        final timestamp = data['timestamp'] as Timestamp?;
+        final createdAt = data['createdAt'] as Timestamp?;
+        final time = timestamp ?? createdAt;
+        
+        if (time != null) {
+          final orderDate = time.toDate();
+          if (now.difference(orderDate).inDays >= 1) {
+            await doc.reference.update({'status': 'Selesai'});
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error auto-completing old orders: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAndCompleteOldOrders(); // Cek pesanan yang lebih dari 1 hari
+    
+    _ordersSubscription = FirebaseFirestore.instance
+        .collection('orders')
+        .where('status', isEqualTo: 'pending')
+        .snapshots()
+        .listen((snapshot) {
+      if (_isInitialLoad) {
+        _isInitialLoad = false;
+        return; // Abaikan pesanan lama saat pertama kali halaman dimuat
+      }
+      for (var change in snapshot.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          LocalNotifService().showNotification(
+            id: change.doc.id.hashCode,
+            title: 'Pesanan Baru Masuk! 🛒',
+            body: 'Ada pesanan baru yang masuk dan perlu segera diproses.',
+          );
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _ordersSubscription?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +215,16 @@ class AdminDashboard extends StatelessWidget {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () async => await AuthService().signOut(),
+                        onTap: () async {
+                          await AuthService().signOut();
+                          if (context.mounted) {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (_) => const LoginScreen()),
+                              (route) => false,
+                            );
+                          }
+                        },
                         child: Container(
                           width: 42, height: 42,
                           decoration: BoxDecoration(

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'login_screen.dart';
+import '../services/auth_service.dart';
 
 const _redDark  = Color(0xFF8B1A0A);
 const _orange   = Color(0xFFF5A524);
@@ -153,7 +154,7 @@ class KeluarScreen extends StatelessWidget {
                   elevation: 0,
                 ),
                 onPressed: () async {
-                  await FirebaseAuth.instance.signOut();
+                  await AuthService().signOut();
                   if (context.mounted) {
                     Navigator.pushAndRemoveUntil(
                       context,

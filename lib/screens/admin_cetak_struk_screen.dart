@@ -16,10 +16,174 @@ const _textGray  = Color(0xFF888888);
 class AdminCetakStrukScreen extends StatelessWidget {
   const AdminCetakStrukScreen({super.key});
 
+  Future<void> _showDeleteOptions(BuildContext context) async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Hapus Histori Pesanan', style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 18, color: _textBlack)),
+            const SizedBox(height: 6),
+            Text('Pilih status pesanan yang ingin dihapus:', style: GoogleFonts.nunito(color: _textGray, fontSize: 14)),
+            const SizedBox(height: 16),
+            _buildDeleteOption(
+              context,
+              icon: Icons.check_circle_outline,
+              iconColor: const Color(0xFF2E7D32),
+              title: 'Hapus Pesanan Selesai',
+              subtitle: 'Hanya pesanan yang sudah dicetak struknya',
+              onTap: () {
+                Navigator.pop(ctx);
+                _confirmDelete(context, 'Selesai');
+              },
+            ),
+            const Divider(height: 1, color: Color(0xFFEEEEEE)),
+            _buildDeleteOption(
+              context,
+              icon: Icons.pending_actions,
+              iconColor: const Color(0xFFE65100),
+              title: 'Hapus Pesanan Diproses',
+              subtitle: 'Hanya pesanan yang belum dicetak struknya',
+              onTap: () {
+                Navigator.pop(ctx);
+                _confirmDelete(context, 'Diproses');
+              },
+            ),
+            const Divider(height: 1, color: Color(0xFFEEEEEE)),
+            _buildDeleteOption(
+              context,
+              icon: Icons.delete_sweep,
+              iconColor: const Color(0xFFD63010),
+              title: 'Hapus Semua Pesanan',
+              subtitle: 'Semua pesanan, baik selesai maupun diproses',
+              onTap: () {
+                Navigator.pop(ctx);
+                _confirmDelete(context, 'Semua');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeleteOption(BuildContext context, {required IconData icon, required Color iconColor, required String title, required String subtitle, required VoidCallback onTap}) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: CircleAvatar(
+        backgroundColor: iconColor.withValues(alpha: 0.1),
+        child: Icon(icon, color: iconColor),
+      ),
+      title: Text(title, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, color: _textBlack, fontSize: 15)),
+      subtitle: Text(subtitle, style: GoogleFonts.nunito(color: _textGray, fontSize: 12)),
+      onTap: onTap,
+    );
+  }
+
+  Future<void> _confirmDelete(BuildContext context, String targetStatus) async {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Konfirmasi Hapus', style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: _textBlack)),
+        content: Text(
+          targetStatus == 'Semua' 
+            ? 'Apakah Anda yakin ingin menghapus semua histori pesanan? Tindakan ini tidak dapat dibatalkan.'
+            : 'Apakah Anda yakin ingin menghapus semua pesanan dengan status "$targetStatus"?', 
+          style: GoogleFonts.nunito(color: _textGray)
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Batal', style: GoogleFonts.nunito(color: _textGray, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _executeDelete(context, targetStatus);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFD63010),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text('Hapus', style: GoogleFonts.nunito(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _executeDelete(BuildContext context, String targetStatus) async {
+    try {
+      final snapshot = await FirebaseFirestore.instance.collection('orders').get();
+      final batch = FirebaseFirestore.instance.batch();
+      int count = 0;
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final s = data['status'] as String?;
+        String currentStatus = 'Diproses';
+        if (s == 'selesai' || s == 'Selesai') currentStatus = 'Selesai';
+        
+        if (targetStatus == 'Semua' || currentStatus == targetStatus) {
+          batch.delete(doc.reference);
+          count++;
+        }
+      }
+
+      if (count == 0) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(targetStatus == 'Semua' ? 'Tidak ada histori untuk dihapus' : 'Tidak ada histori pesanan $targetStatus untuk dihapus', style: GoogleFonts.nunito()),
+              backgroundColor: _orange,
+            ),
+          );
+        }
+        return;
+      }
+
+      await batch.commit();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$count histori pesanan berhasil dihapus', style: GoogleFonts.nunito()),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menghapus histori: $e', style: GoogleFonts.nunito()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _cream,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showDeleteOptions(context),
+        backgroundColor: const Color(0xFFD63010),
+        elevation: 4,
+        tooltip: 'Hapus Histori',
+        child: const Icon(Icons.delete_sweep, color: Colors.white),
+      ),
       body: Column(children: [
         // ── Header
         Container(

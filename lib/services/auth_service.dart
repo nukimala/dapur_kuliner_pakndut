@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -41,6 +42,48 @@ class AuthService {
       return null;
     } on FirebaseAuthException catch (e) {
       throw Exception(e.message ?? 'An error occurred during sign in');
+    }
+  }
+
+  // Google Sign In
+  Future<UserModel?> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return null; // User canceled
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      UserCredential userCredential = await _auth.signInWithCredential(credential).timeout(const Duration(seconds: 15));
+
+      if (userCredential.user != null) {
+        DocumentSnapshot doc = await _firestore
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .get()
+            .timeout(const Duration(seconds: 10));
+
+        if (!doc.exists) {
+          UserModel newUser = UserModel(
+            uid: userCredential.user!.uid,
+            email: googleUser.email,
+            name: googleUser.displayName ?? 'Pengguna Google',
+            role: 'buyer',
+          );
+          await _firestore.collection('users').doc(newUser.uid).set(newUser.toMap()).timeout(const Duration(seconds: 10));
+          return newUser;
+        } else {
+          return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+        }
+      }
+      return null;
+    } on FirebaseAuthException catch (e) {
+      throw Exception(e.message ?? 'An error occurred during Google sign in');
+    } catch (e) {
+      throw Exception(e.toString());
     }
   }
 
@@ -87,6 +130,7 @@ class AuthService {
 
   // Sign Out
   Future<void> signOut() async {
+    await GoogleSignIn().signOut();
     await _auth.signOut();
   }
 
