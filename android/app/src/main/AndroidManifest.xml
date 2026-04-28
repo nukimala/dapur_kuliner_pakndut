@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="dapur_kuliner_pakndut"
+        android:label="Dapur Kuliner PakNdut"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
