@@ -15,7 +15,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   void _resetPassword() async {
     final email = _emailController.text.trim();
-    
+
     if (email.isEmpty) {
       _showErrorDialog('Email tidak boleh kosong');
       return;
@@ -32,14 +32,16 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     try {
       await _authService.sendPasswordResetEmail(email);
-      
+
       if (mounted) {
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (context) => AlertDialog(
             title: const Text('Berhasil'),
-            content: Text('Kami telah mengirimkan instruksi reset password ke\n$email'),
+            content: Text(
+              'Kami telah mengirimkan instruksi reset password ke\n$email',
+            ),
             actions: [
               TextButton(
                 onPressed: () {
@@ -53,7 +55,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         );
       }
     } catch (e) {
-      _showErrorDialog('Tidak dapat mengirimkan instruksi reset password.\n\n$e');
+      _showErrorDialog(
+        'Tidak dapat mengirimkan instruksi reset password.\n\n$e',
+      );
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -87,112 +91,199 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFff7e5f), Color(0xFFfeb47b)], 
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFCC1A0A), // merah tua atas
+              Color(0xFFE52010), // merah tengah
+              Color(0xFFB81008), // merah tua bawah
+            ],
+            stops: [0.0, 0.5, 1.0],
           ),
         ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Stack(
+          children: [
+            // Lingkaran dekorasi kiri atas
+            Positioned(
+              top: -60,
+              left: -60,
+              child: Container(
+                width: 220,
+                height: 220,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.06),
+                ),
+              ),
+            ),
+            // Lingkaran dekorasi kanan atas
+            Positioned(
+              top: 30,
+              right: -40,
+              child: Container(
+                width: 150,
+                height: 150,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withValues(alpha: 0.08),
+                ),
+              ),
+            ),
+            // Lingkaran dekorasi kiri bawah
+            Positioned(
+              bottom: 80,
+              left: -50,
+              child: Container(
+                width: 180,
+                height: 180,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.05),
+                ),
+              ),
+            ),
+            // Lingkaran dekorasi kanan bawah
+            Positioned(
+              bottom: -30,
+              right: -30,
+              child: Container(
+                width: 200,
+                height: 200,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withValues(alpha: 0.07),
+                ),
+              ),
+            ),
+
+            // ── Konten utama
+            SafeArea(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.lock_reset,
-                    size: 100,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Reset Password',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                  // Tombol back
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Masukkan email yang terdaftar, kami akan mengirimkan link untuk mereset password Anda.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white70,
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.95),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        TextField(
-                          controller: _emailController,
-                          decoration: InputDecoration(
-                            labelText: 'Input Email',
-                            prefixIcon: const Icon(Icons.email_outlined),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+
+                  // Konten scroll
+                  Expanded(
+                    child: Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.lock_reset,
+                              size: 100,
+                              color: Colors.white,
                             ),
-                          ),
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _resetPassword,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFff7e5f),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                            const SizedBox(height: 20),
+                            const Text(
+                              'Reset Password',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
-                              elevation: 2,
                             ),
-                            child: _isLoading
-                                ? const CircularProgressIndicator(color: Colors.white)
-                                : const Text(
-                                    'Reset Password',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                            const SizedBox(height: 10),
+                            const Text(
+                              'Masukkan email yang terdaftar, kami akan mengirimkan link untuk mereset password Anda.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white70,
+                              ),
+                            ),
+                            const SizedBox(height: 40),
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.95),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  TextField(
+                                    controller: _emailController,
+                                    decoration: InputDecoration(
+                                      labelText: 'Input Email',
+                                      prefixIcon: const Icon(
+                                        Icons.email_outlined,
+                                      ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    keyboardType: TextInputType.emailAddress,
+                                  ),
+                                  const SizedBox(height: 24),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 50,
+                                    child: ElevatedButton(
+                                      onPressed: _isLoading
+                                          ? null
+                                          : _resetPassword,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(
+                                          0xFFF5A524,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        elevation: 2,
+                                      ),
+                                      child: _isLoading
+                                          ? const CircularProgressIndicator(
+                                              color: Colors.white,
+                                            )
+                                          : const Text(
+                                              'Reset Password',
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
                                     ),
                                   ),
-                          ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 }
-
