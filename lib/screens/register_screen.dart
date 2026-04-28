@@ -15,7 +15,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  String _selectedRole = 'buyer';
+  final String _selectedRole = 'buyer';
   final AuthService _authService = AuthService();
   bool _isLoading = false;
   bool _obscurePassword = true;

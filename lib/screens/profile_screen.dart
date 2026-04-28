@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -26,6 +27,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   String _avatar = '👤';
+  String? _photoBase64;
 
   @override
   void initState() {
@@ -39,7 +41,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
       if (doc.exists && mounted) {
-        setState(() => _avatar = (doc.data()?['avatar'] as String?) ?? '👤');
+        final data = doc.data()!;
+        setState(() {
+          _avatar      = (data['avatar']      as String?) ?? '👤';
+          _photoBase64 = data['photoBase64']  as String?;
+        });
       }
     } catch (_) {}
   }
@@ -87,7 +93,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           border: Border.all(color: Colors.white, width: 3),
                           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 10)],
                         ),
-                        child: Center(child: Text(_avatar, style: const TextStyle(fontSize: 42))),
+                        child: _photoBase64 != null
+                          ? (() {
+                              try {
+                                return ClipOval(
+                                  child: Image.memory(
+                                    base64Decode(_photoBase64!),
+                                    width: 78, height: 78, fit: BoxFit.cover,
+                                  ),
+                                );
+                              } catch (_) {
+                                return Center(child: Text(_avatar, style: const TextStyle(fontSize: 42)));
+                              }
+                            })()
+                          : Center(child: Text(_avatar, style: const TextStyle(fontSize: 42))),
                       ),
                       Positioned(bottom: 2, right: 2,
                         child: Container(

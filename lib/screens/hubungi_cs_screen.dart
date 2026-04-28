@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -17,7 +17,7 @@ class HubungiCSScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final channels = [
       {'title': 'Whatsapp',         'sub': 'Online 08:00-22:00',            'btn': 'CHAT',    'color': _green,  'url': 'https://wa.me/6285730803962'},
-      {'title': 'Email Support',    'sub': 'cs@dapurkulinerpakndut.com',     'btn': 'KIRIM',   'color': _blue,   'url': 'mailto:cs@dapurkulinerpakndut.com'},
+      {'title': 'Email Support',    'sub': 'cs@dapurkulinerpakndut.com',     'btn': 'KIRIM',   'color': _blue,   'url': 'mailto:cs@dapurkulinerpakndut.com?subject=Bantuan%20-%20Dapur%20Kuliner%20Pak%20Ndut&body=Halo%20Tim%20CS%20Dapur%20Kuliner%20Pak%20Ndut%2C%0A%0ASaya%20ingin%20bertanya%20mengenai%3A%0A'},
       {'title': 'Telepon Langsung', 'sub': '+62 852-3569-6918',              'btn': 'HUBUNGI', 'color': _redBtn, 'url': 'tel:+628523569618'},
     ];
 
@@ -89,7 +89,25 @@ class HubungiCSScreen extends StatelessWidget {
                 GestureDetector(
                   onTap: () async {
                     final url = Uri.parse(ch['url'] as String);
-                    if (await canLaunchUrl(url)) await launchUrl(url);
+                    final isExternal = url.scheme == 'mailto' || url.scheme == 'tel';
+                    final launched = await launchUrl(
+                      url,
+                      mode: isExternal
+                          ? LaunchMode.externalApplication
+                          : LaunchMode.platformDefault,
+                    );
+                    if (!launched && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Tidak dapat membuka ${url.scheme == 'mailto' ? 'aplikasi email' : url.scheme == 'tel' ? 'aplikasi telepon' : 'tautan'}. Pastikan aplikasi terkait sudah terpasang.',
+                            style: GoogleFonts.nunito(),
+                          ),
+                          backgroundColor: _redDark,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),

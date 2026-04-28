@@ -270,7 +270,7 @@ class _OrderCard extends StatelessWidget {
   const _OrderCard({required this.orderId, required this.data});
 
   String _fmt(dynamic v) {
-    final amount = (v is num) ? v.toDouble() : 0.0;
+    final amount = (v is num) ? v.toDouble() : 0.0;               
     final s = amount.toStringAsFixed(0);
     final buf = StringBuffer();
     int c = 0;

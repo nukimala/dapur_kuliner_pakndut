@@ -1,13 +1,17 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 
+const _red       = Color(0xFFC0321A);
 const _redDark   = Color(0xFF8B1A0A);
 const _orange    = Color(0xFFF5A524);
+const _cream     = Color(0xFFF7F0E6);
 const _textBlack = Color(0xFF1C1C1C);
 const _textGray  = Color(0xFF888888);
-const _cream     = Color(0xFFF7F0E6);
 
 class EditProfilScreen extends StatefulWidget {
   const EditProfilScreen({super.key});
@@ -15,389 +19,493 @@ class EditProfilScreen extends StatefulWidget {
   State<EditProfilScreen> createState() => _EditProfilScreenState();
 }
 
-// Pilihan avatar emoji
-const _avatarList = [
-  '👦','👧','🧑','👨','👩','🧔','👴','👵',
-  '🧒','👶','🧑‍💻','👨‍🍳','👩‍🍳','🧑‍🎨','🦸','🦹',
-  '🧙','🧝','🐱','🐶',
-];
-
 class _EditProfilScreenState extends State<EditProfilScreen> {
-  final _nameCtrl      = TextEditingController();
-  final _panggilanCtrl = TextEditingController();
-  final _emailCtrl     = TextEditingController();
-  final _teleponCtrl   = TextEditingController();
+  final _nameCtrl  = TextEditingController();
+  final _phoneCtrl = TextEditingController();
 
-  String _gender   = '';        // 'Laki-laki' | 'Perempuan'
-  String _avatar   = '👤';     // emoji avatar
-  DateTime? _birthDate;
-  bool _loading = true;
-  bool _saving  = false;
+  String  _avatar         = '👤';
+  String? _photoBase64;   // disimpan langsung di Firestore
+  File?   _pickedImage;
+  bool    _loading        = true;
+  bool    _saving         = false;
+  bool    _uploadingPhoto = false;
 
-  String get _uid => FirebaseAuth.instance.currentUser?.uid ?? '';
+  final List<String> _avatarOptions = [
+    '👤','👦','👧','👨','👩','👴','👵',
+    '🧑‍🍳','😎','🤠','🥷','🦸','🧑‍💻','🧑‍🎨',
+  ];
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _loadProfile();
   }
 
   @override
   void dispose() {
-    _nameCtrl.dispose(); _panggilanCtrl.dispose();
-    _emailCtrl.dispose(); _teleponCtrl.dispose();
+    _nameCtrl.dispose();
+    _phoneCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _load() async {
+  // ── Load profil dari Firestore ──
+  Future<void> _loadProfile() async {
     final user = FirebaseAuth.instance.currentUser;
-    _emailCtrl.text = user?.email ?? '';
-    _nameCtrl.text  = user?.displayName ?? '';
-    _panggilanCtrl.text = user?.displayName?.split(' ').first ?? '';
-
-    if (_uid.isNotEmpty) {
-      try {
-        final doc = await FirebaseFirestore.instance.collection('users').doc(_uid).get();
-        if (doc.exists) {
-          final d = doc.data()!;
-          _nameCtrl.text      = d['name']      ?? _nameCtrl.text;
-          _panggilanCtrl.text = d['panggilan']  ?? _panggilanCtrl.text;
-          _teleponCtrl.text   = d['telepon']    ?? '';
-          _gender             = d['gender']     ?? '';
-          _avatar             = d['avatar']     ?? '👤';
-          final ts            = d['birthDate'];
-          if (ts != null) _birthDate = (ts as dynamic).toDate();
-        }
-      } catch (_) {}
-    }
+    if (user == null) return;
+    _nameCtrl.text  = user.displayName ?? user.email?.split('@').first ?? '';
+    _phoneCtrl.text = user.phoneNumber ?? '';
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users').doc(user.uid).get();
+      if (doc.exists && mounted) {
+        final data = doc.data()!;
+        setState(() {
+          _avatar      = (data['avatar']      as String?) ?? '👤';
+          _photoBase64 = (data['photoBase64'] as String?);
+          final storedName  = data['name']  as String?;
+          final storedPhone = data['phone'] as String?;
+          if (_nameCtrl.text.isEmpty  && (storedName  ?? '').isNotEmpty) _nameCtrl.text  = storedName!;
+          if (_phoneCtrl.text.isEmpty && (storedPhone ?? '').isNotEmpty) _phoneCtrl.text = storedPhone!;
+        });
+      }
+    } catch (_) {}
     if (mounted) setState(() => _loading = false);
   }
 
-  Future<void> _save() async {
-    if (_nameCtrl.text.trim().isEmpty) {
-      _snack('Nama tidak boleh kosong.', isError: true);
-      return;
+  // ── Pilih foto dari galeri & simpan sebagai base64 ──
+  Future<void> _pickFromGallery() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 300,
+      maxHeight: 300,
+      imageQuality: 75,
+    );
+    if (picked == null) return;
+
+    setState(() {
+      _pickedImage    = File(picked.path);
+      _uploadingPhoto = true;
+    });
+
+    try {
+      final uid   = FirebaseAuth.instance.currentUser!.uid;
+      final bytes = await _pickedImage!.readAsBytes();
+      final b64   = base64Encode(bytes);
+
+      // Simpan base64 langsung ke Firestore (tidak perlu Firebase Storage)
+      await FirebaseFirestore.instance.collection('users').doc(uid).set(
+        {'photoBase64': b64, 'avatar': _avatar},
+        SetOptions(merge: true),
+      );
+
+      if (mounted) {
+        setState(() {
+          _photoBase64    = b64;
+          _uploadingPhoto = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Foto profil berhasil diperbarui!',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _uploadingPhoto = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menyimpan foto: $e',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
+            backgroundColor: _red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
     }
+  }
+
+  // ── Hapus foto & kembali ke emoji ──
+  Future<void> _removePhoto() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'photoBase64': FieldValue.delete(),
+      });
+      if (mounted) setState(() { _photoBase64 = null; _pickedImage = null; });
+    } catch (_) {}
+  }
+
+  // ── Bottom sheet pilih sumber avatar ──
+  void _showAvatarPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => _AvatarPickerSheet(
+        currentAvatar: _avatar,
+        hasPhoto: _photoBase64 != null,
+        onPickGallery: () { Navigator.pop(context); _pickFromGallery(); },
+        onPickEmoji: (e)  { Navigator.pop(context); setState(() => _avatar = e); },
+        onRemovePhoto: ()  { Navigator.pop(context); _removePhoto(); },
+        avatarOptions: _avatarOptions,
+      ),
+    );
+  }
+
+  // ── Simpan profil ──
+  Future<void> _save() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
     setState(() => _saving = true);
     try {
-      // Update Firebase Auth display name
-      await FirebaseAuth.instance.currentUser?.updateDisplayName(_nameCtrl.text.trim());
-
-      // Save to Firestore users collection
-      await FirebaseFirestore.instance.collection('users').doc(_uid).set({
-        'name':      _nameCtrl.text.trim(),
-        'panggilan': _panggilanCtrl.text.trim(),
-        'email':     _emailCtrl.text.trim(),
-        'telepon':   _teleponCtrl.text.trim(),
-        'gender':    _gender,
-        'avatar':    _avatar,
-        'birthDate': _birthDate,
-        'updatedAt': FieldValue.serverTimestamp(),
+      final name = _nameCtrl.text.trim();
+      if (name.isNotEmpty) {
+        await FirebaseAuth.instance.currentUser!.updateDisplayName(name);
+      }
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'avatar': _avatar,
+        'name':   name,
+        'phone':  _phoneCtrl.text.trim(),
       }, SetOptions(merge: true));
 
-      _snack('Profil berhasil disimpan! ✅');
-      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Profil berhasil disimpan!',
+              style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ));
+        Navigator.pop(context);
+      }
     } catch (e) {
-      _snack('Gagal menyimpan: $e', isError: true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Gagal menyimpan: $e',
+              style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
+          backgroundColor: _red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ));
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
-  void _snack(String msg, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg, style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
-      backgroundColor: isError ? const Color(0xFFE8331A) : const Color(0xFF2BB84A),
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    ));
-  }
+  // ── Widget avatar ──
+  Widget _buildAvatar() {
+    Widget inner;
+    if (_uploadingPhoto) {
+      inner = const Center(child: CircularProgressIndicator(color: _orange, strokeWidth: 3));
+    } else if (_pickedImage != null && _photoBase64 != null) {
+      inner = ClipOval(child: Image.file(_pickedImage!, width: 90, height: 90, fit: BoxFit.cover));
+    } else if (_photoBase64 != null) {
+      try {
+        final bytes = base64Decode(_photoBase64!);
+        inner = ClipOval(child: Image.memory(bytes, width: 90, height: 90, fit: BoxFit.cover));
+      } catch (_) {
+        inner = Center(child: Text(_avatar, style: const TextStyle(fontSize: 48)));
+      }
+    } else {
+      inner = Center(child: Text(_avatar, style: const TextStyle(fontSize: 48)));
+    }
 
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _birthDate ?? DateTime(2000, 1, 1),
-      firstDate: DateTime(1940),
-      lastDate: now,
-      builder: (ctx, child) => Theme(
-        data: ThemeData.light().copyWith(
-          colorScheme: const ColorScheme.light(primary: _orange, onPrimary: Colors.white),
-          dialogTheme: const DialogThemeData(shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(20)))),
-        ),
-        child: child!,
-      ),
-    );
-    if (picked != null) setState(() => _birthDate = picked);
-  }
-
-  void _pickAvatar() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          // Handle bar
-          Container(width: 40, height: 4,
-              decoration: BoxDecoration(color: const Color(0xFFDDDDDD), borderRadius: BorderRadius.circular(2))),
-          const SizedBox(height: 16),
-          Text('Pilih Avatar', style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w800, color: const Color(0xFF1C1C1C))),
-          const SizedBox(height: 4),
-          Text('Pilih emoji yang mewakilimu!', style: GoogleFonts.nunito(fontSize: 13, color: const Color(0xFF888888))),
-          const SizedBox(height: 16),
-          GridView.count(
-            crossAxisCount: 5,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            children: _avatarList.map((emoji) {
-              final isSelected = emoji == _avatar;
-              return GestureDetector(
-                onTap: () {
-                  setState(() => _avatar = emoji);
-                  Navigator.pop(context);
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  decoration: BoxDecoration(
-                    color: isSelected ? _orange.withValues(alpha: 0.15) : const Color(0xFFF5F5F5),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isSelected ? _orange : Colors.transparent,
-                      width: 2,
-                    ),
-                  ),
-                  child: Center(child: Text(emoji, style: const TextStyle(fontSize: 32))),
-                ),
-              );
-            }).toList(),
+    return GestureDetector(
+      onTap: _showAvatarPicker,
+      child: Stack(children: [
+        Container(
+          width: 90, height: 90,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F0E0), shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 3),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 10)],
           ),
-        ]),
-      ),
+          child: inner,
+        ),
+        Positioned(
+          bottom: 2, right: 2,
+          child: Container(
+            width: 28, height: 28,
+            decoration: BoxDecoration(
+              color: _orange, shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: const Center(child: Icon(Icons.camera_alt_rounded, color: Colors.white, size: 14)),
+          ),
+        ),
+      ]),
     );
-  }
-
-  String _fmtDate(DateTime? d) {
-    if (d == null) return '';
-    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
-    return '${d.day} ${months[d.month - 1]} ${d.year}';
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(
+        backgroundColor: _cream,
+        body: Center(child: CircularProgressIndicator(color: _orange)),
+      );
+    }
+
     return Scaffold(
       backgroundColor: _cream,
       body: Column(children: [
-        // ── Header
+        // ── Header ──
         Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-                colors: [Color(0xFFD63010), _redDark]),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft, end: Alignment.bottomRight,
+              colors: [Color(0xFFD63010), _redDark],
+            ),
           ),
           child: Stack(children: [
-            Positioned.fill(child: _blobs()),
-            SafeArea(bottom: false, child: Padding(
-              padding: const EdgeInsets.fromLTRB(4, 6, 20, 14),
-              child: Row(children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                Text('Edit Profil',
-                    style: GoogleFonts.nunito(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20)),
-              ]),
-            )),
-          ]),
-        ),
-
-        // ── Body
-        Expanded(
-          child: _loading
-              ? const Center(child: CircularProgressIndicator(color: _orange))
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                  child: Column(children: [
-                    // Avatar card
-                    GestureDetector(
-                      onTap: _pickAvatar,
-                      child: Container(
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18),
-                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 10)]),
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        margin: const EdgeInsets.only(bottom: 16),
-                        child: Column(children: [
-                          Stack(children: [
-                            Container(width: 76, height: 76,
-                                decoration: const BoxDecoration(color: Color(0xFFF5F0E0), shape: BoxShape.circle),
-                                child: Center(child: Text(_avatar, style: const TextStyle(fontSize: 42)))),
-                            Positioned(bottom: 2, right: 2, child: Container(
-                              width: 26, height: 26,
-                              decoration: BoxDecoration(color: _orange, shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 2)),
-                              child: const Center(child: Icon(Icons.edit, color: Colors.white, size: 13)),
-                            )),
-                          ]),
-                          const SizedBox(height: 8),
-                          Text('Tap untuk ganti avatar',
-                              style: GoogleFonts.nunito(fontSize: 12, color: _textGray)),
-                          const SizedBox(height: 2),
-                          Text('${_avatarList.length} pilihan tersedia',
-                              style: GoogleFonts.nunito(fontSize: 11, color: _orange, fontWeight: FontWeight.w700)),
-                        ]),
-                      ),
+            Positioned.fill(child: _blobsBg()),
+            SafeArea(
+              bottom: false,
+              child: Column(children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 6, 20, 0),
+                  child: Row(children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+                      onPressed: () => Navigator.pop(context),
                     ),
-
-                    // ── Text fields
-                    _inputField('NAMA LENGKAP', _nameCtrl, hint: 'Masukkan nama lengkap'),
-                    _inputField('NAMA PANGGILAN', _panggilanCtrl, hint: 'Nama panggilan'),
-                    _inputField('EMAIL', _emailCtrl, hint: 'email@example.com',
-                        keyboard: TextInputType.emailAddress, readOnly: true),
-                    _inputField('NO. TELEPON', _teleponCtrl, hint: '08xx-xxxx-xxxx',
-                        keyboard: TextInputType.phone),
-
-                    // ── Jenis Kelamin
-                    _label('JENIS KELAMIN'),
-                    Row(children: [
-                      _genderChip('Laki-laki', '👦'),
-                      const SizedBox(width: 10),
-                      _genderChip('Perempuan', '👧'),
-                    ]),
-                    const SizedBox(height: 14),
-
-                    // ── Tanggal Lahir
-                    _label('TANGGAL LAHIR'),
-                    GestureDetector(
-                      onTap: _pickDate,
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                              color: _birthDate != null ? _orange : const Color(0xFFEAEAEA), width: 1.5),
-                        ),
-                        child: Row(children: [
-                          Icon(Icons.calendar_today_outlined,
-                              size: 18, color: _birthDate != null ? _orange : _textGray),
-                          const SizedBox(width: 10),
-                          Text(
-                            _birthDate != null ? _fmtDate(_birthDate) : 'Pilih tanggal lahir...',
-                            style: GoogleFonts.nunito(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: _birthDate != null ? _textBlack : _textGray),
-                          ),
-                          const Spacer(),
-                          Icon(Icons.keyboard_arrow_down_rounded,
-                              color: _birthDate != null ? _orange : _textGray),
-                        ]),
-                      ),
-                    ),
-                    const SizedBox(height: 22),
-
-                    // ── Save button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: _orange,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-                          elevation: 0,
-                        ),
-                        onPressed: _saving ? null : _save,
-                        child: _saving
-                            ? const SizedBox(width: 22, height: 22,
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                            : Text('Simpan Perubahan',
-                                style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16)),
-                      ),
-                    ),
+                    Text('Edit Profil',
+                        style: GoogleFonts.nunito(
+                            color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20)),
                   ]),
                 ),
-        ),
-      ]),
-    );
-  }
-
-  Widget _label(String t) => Padding(
-    padding: const EdgeInsets.only(bottom: 8, left: 2),
-    child: Align(alignment: Alignment.centerLeft,
-      child: Text(t, style: GoogleFonts.nunito(
-          fontSize: 11, fontWeight: FontWeight.w800,
-          color: const Color(0xFFAAAAAA), letterSpacing: 1.1))),
-  );
-
-  Widget _inputField(String label, TextEditingController ctrl,
-      {String hint = '', TextInputType keyboard = TextInputType.text, bool readOnly = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 13),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _label(label),
-        TextField(
-          controller: ctrl,
-          keyboardType: keyboard,
-          readOnly: readOnly,
-          style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w600, color: _textBlack),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: GoogleFonts.nunito(fontSize: 14, color: _textGray),
-            filled: true,
-            fillColor: readOnly ? const Color(0xFFF5F5F5) : Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: Color(0xFFEAEAEA))),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: Color(0xFFEAEAEA), width: 1.5)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: readOnly ? const Color(0xFFEAEAEA) : _orange, width: 1.5)),
-          ),
-        ),
-      ]),
-    );
-  }
-
-  Widget _genderChip(String label, String emoji) {
-    final selected = _gender == label;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _gender = label),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: selected ? _orange : Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-                color: selected ? _orange : const Color(0xFFEAEAEA), width: 1.5),
-            boxShadow: selected
-                ? [BoxShadow(color: _orange.withValues(alpha: 0.3), blurRadius: 10)]
-                : [],
-          ),
-          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text(emoji, style: const TextStyle(fontSize: 20)),
-            const SizedBox(width: 8),
-            Text(label, style: GoogleFonts.nunito(
-                fontWeight: FontWeight.w700, fontSize: 14,
-                color: selected ? Colors.white : _textBlack)),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 14, 24, 24),
+                  child: Column(children: [
+                    _buildAvatar(),
+                    const SizedBox(height: 8),
+                    Text('Ketuk untuk ubah foto',
+                        style: GoogleFonts.nunito(color: Colors.white70, fontSize: 12)),
+                  ]),
+                ),
+              ]),
+            ),
           ]),
         ),
+
+        // ── Form ──
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 30),
+            child: Column(children: [
+              _fieldCard(
+                icon: Icons.person_outline_rounded,
+                label: 'Nama Lengkap',
+                child: TextField(
+                  controller: _nameCtrl,
+                  style: GoogleFonts.nunito(
+                      fontSize: 15, color: _textBlack, fontWeight: FontWeight.w600),
+                  decoration: InputDecoration(
+                    hintText: 'Masukkan nama kamu',
+                    hintStyle: GoogleFonts.nunito(color: _textGray, fontSize: 14),
+                    border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              _fieldCard(
+                icon: Icons.phone_outlined,
+                label: 'Nomor Telepon',
+                child: TextField(
+                  controller: _phoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  style: GoogleFonts.nunito(
+                      fontSize: 15, color: _textBlack, fontWeight: FontWeight.w600),
+                  decoration: InputDecoration(
+                    hintText: 'Contoh: 08123456789',
+                    hintStyle: GoogleFonts.nunito(color: _textGray, fontSize: 14),
+                    border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              _fieldCard(
+                icon: Icons.email_outlined,
+                label: 'Email',
+                child: Text(
+                  FirebaseAuth.instance.currentUser?.email ?? '-',
+                  style: GoogleFonts.nunito(
+                      fontSize: 15, color: _textGray, fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
+                width: double.infinity, height: 52,
+                child: ElevatedButton(
+                  onPressed: _saving ? null : _save,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _red, foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 3,
+                  ),
+                  child: _saving
+                      ? const SizedBox(width: 24, height: 24,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                      : Text('Simpan Perubahan',
+                          style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16)),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Widget _fieldCard({required IconData icon, required String label, required Widget child}) =>
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white, borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 2))],
+        ),
+        child: Row(children: [
+          Container(
+            width: 42, height: 42,
+            decoration: BoxDecoration(color: const Color(0xFFFFF0DC), borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: _orange, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(label,
+                  style: GoogleFonts.nunito(fontSize: 11, color: _textGray, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 4),
+              child,
+            ]),
+          ),
+        ]),
+      );
+}
+
+// ── Bottom Sheet pilih avatar ──
+class _AvatarPickerSheet extends StatelessWidget {
+  final String currentAvatar;
+  final bool hasPhoto;
+  final VoidCallback onPickGallery;
+  final ValueChanged<String> onPickEmoji;
+  final VoidCallback onRemovePhoto;
+  final List<String> avatarOptions;
+
+  const _AvatarPickerSheet({
+    required this.currentAvatar, required this.hasPhoto,
+    required this.onPickGallery, required this.onPickEmoji,
+    required this.onRemovePhoto, required this.avatarOptions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 30),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Container(width: 40, height: 4,
+            decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+        const SizedBox(height: 18),
+        Text('Ubah Foto Profil',
+            style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w800, color: _textBlack)),
+        const SizedBox(height: 20),
+
+        _optionTile(
+          icon: Icons.photo_library_rounded,
+          iconBg: const Color(0xFFE8F5E9), iconColor: Colors.green.shade700,
+          title: 'Pilih dari Galeri', sub: 'Gunakan foto dari album kamu',
+          onTap: onPickGallery,
+        ),
+
+        if (hasPhoto) ...[
+          const SizedBox(height: 10),
+          _optionTile(
+            icon: Icons.delete_outline_rounded,
+            iconBg: const Color(0xFFFFE8E5), iconColor: _red,
+            title: 'Hapus Foto Profil', sub: 'Kembali ke avatar emoji',
+            onTap: onRemovePhoto,
+          ),
+        ],
+
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Row(children: [
+            Expanded(child: Divider(color: Colors.grey[200])),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text('atau pilih avatar',
+                  style: GoogleFonts.nunito(fontSize: 12, color: _textGray, fontWeight: FontWeight.w600)),
+            ),
+            Expanded(child: Divider(color: Colors.grey[200])),
+          ]),
+        ),
+
+        Wrap(
+          spacing: 10, runSpacing: 10,
+          children: avatarOptions.map((emoji) {
+            final selected = emoji == currentAvatar;
+            return GestureDetector(
+              onTap: () => onPickEmoji(emoji),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 52, height: 52,
+                decoration: BoxDecoration(
+                  color: selected ? const Color(0xFFFFF0DC) : const Color(0xFFF7F0E6),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: selected ? _orange : Colors.transparent, width: 2.5),
+                  boxShadow: selected
+                      ? [BoxShadow(color: _orange.withValues(alpha: 0.25), blurRadius: 8)]
+                      : [],
+                ),
+                child: Center(child: Text(emoji, style: const TextStyle(fontSize: 28))),
+              ),
+            );
+          }).toList(),
+        ),
+      ]),
+    );
+  }
+
+  Widget _optionTile({required IconData icon, required Color iconBg,
+      required Color iconColor, required String title, required String sub,
+      required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap, borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+            color: const Color(0xFFF9F9F9), borderRadius: BorderRadius.circular(16)),
+        child: Row(children: [
+          Container(width: 46, height: 46,
+              decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(14)),
+              child: Icon(icon, color: iconColor, size: 24)),
+          const SizedBox(width: 14),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(title, style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 15, color: _textBlack)),
+            const SizedBox(height: 2),
+            Text(sub, style: GoogleFonts.nunito(fontSize: 12, color: _textGray)),
+          ])),
+          const Icon(Icons.chevron_right, color: Color(0xFFCCCCCC)),
+        ]),
       ),
     );
   }
 }
 
-Widget _blobs() => Stack(children: [
+Widget _blobsBg() => Stack(children: [
   Positioned(right: -35, top: -55,
       child: Container(width: 170, height: 170,
           decoration: BoxDecoration(shape: BoxShape.circle,
