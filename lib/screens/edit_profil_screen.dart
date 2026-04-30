@@ -11,7 +11,8 @@ const _redDark   = Color(0xFF8B1A0A);
 const _orange    = Color(0xFFF5A524);
 const _cream     = Color(0xFFF7F0E6);
 const _textBlack = Color(0xFF1C1C1C);
-const _textGray  = Color(0xFF888888);
+const _textGray  = Color(0xFFAAAAAA);
+const _labelGray = Color(0xFFB0A496); // Color for labels like NAMA LENGKAP
 
 class EditProfilScreen extends StatefulWidget {
   const EditProfilScreen({super.key});
@@ -20,11 +21,14 @@ class EditProfilScreen extends StatefulWidget {
 }
 
 class _EditProfilScreenState extends State<EditProfilScreen> {
-  final _nameCtrl  = TextEditingController();
-  final _phoneCtrl = TextEditingController();
+  final _nameCtrl     = TextEditingController();
+  final _emailCtrl    = TextEditingController();
+  final _phoneCtrl    = TextEditingController();
+  final _dobCtrl      = TextEditingController();
+  final _genderCtrl   = TextEditingController();
 
   String  _avatar         = '👤';
-  String? _photoBase64;   // disimpan langsung di Firestore
+  String? _photoBase64;
   File?   _pickedImage;
   bool    _loading        = true;
   bool    _saving         = false;
@@ -33,6 +37,11 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
   final List<String> _avatarOptions = [
     '👤','👦','👧','👨','👩','👴','👵',
     '🧑‍🍳','😎','🤠','🥷','🦸','🧑‍💻','🧑‍🎨',
+  ];
+
+  final List<String> _bulan = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
   ];
 
   @override
@@ -44,7 +53,10 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _emailCtrl.dispose();
     _phoneCtrl.dispose();
+    _dobCtrl.dispose();
+    _genderCtrl.dispose();
     super.dispose();
   }
 
@@ -52,8 +64,11 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
   Future<void> _loadProfile() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
+    
     _nameCtrl.text  = user.displayName ?? user.email?.split('@').first ?? '';
+    _emailCtrl.text = user.email ?? '';
     _phoneCtrl.text = user.phoneNumber ?? '';
+    
     try {
       final doc = await FirebaseFirestore.instance
           .collection('users').doc(user.uid).get();
@@ -62,10 +77,16 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
         setState(() {
           _avatar      = (data['avatar']      as String?) ?? '👤';
           _photoBase64 = (data['photoBase64'] as String?);
-          final storedName  = data['name']  as String?;
-          final storedPhone = data['phone'] as String?;
+          
+          final storedName     = data['name']     as String?;
+          final storedPhone    = data['phone']    as String?;
+          final storedDob      = data['dob']      as String?;
+          final storedGender   = data['gender']   as String?;
+
           if (_nameCtrl.text.isEmpty  && (storedName  ?? '').isNotEmpty) _nameCtrl.text  = storedName!;
           if (_phoneCtrl.text.isEmpty && (storedPhone ?? '').isNotEmpty) _phoneCtrl.text = storedPhone!;
+          _dobCtrl.text      = storedDob ?? '';
+          _genderCtrl.text   = storedGender ?? '';
         });
       }
     } catch (_) {}
@@ -93,7 +114,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
       final bytes = await _pickedImage!.readAsBytes();
       final b64   = base64Encode(bytes);
 
-      // Simpan base64 langsung ke Firestore (tidak perlu Firebase Storage)
       await FirebaseFirestore.instance.collection('users').doc(uid).set(
         {'photoBase64': b64, 'avatar': _avatar},
         SetOptions(merge: true),
@@ -170,9 +190,11 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
         await FirebaseAuth.instance.currentUser!.updateDisplayName(name);
       }
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
-        'avatar': _avatar,
-        'name':   name,
-        'phone':  _phoneCtrl.text.trim(),
+        'avatar':   _avatar,
+        'name':     name,
+        'phone':    _phoneCtrl.text.trim(),
+        'dob':      _dobCtrl.text.trim(),
+        'gender':   _genderCtrl.text.trim(),
       }, SetOptions(merge: true));
 
       if (mounted) {
@@ -200,7 +222,71 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
     }
   }
 
-  // ── Widget avatar ──
+  // ── Pilih Tanggal Lahir ──
+  Future<void> _pickDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: _orange,
+              onPrimary: Colors.white,
+              onSurface: _textBlack,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _dobCtrl.text = '${picked.day} ${_bulan[picked.month - 1]} ${picked.year}';
+      });
+    }
+  }
+
+  // ── Pilih Jenis Kelamin ──
+  void _pickGender() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Pilih Jenis Kelamin', style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            ListTile(
+              title: Text('Laki-laki', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w600)),
+              onTap: () {
+                setState(() => _genderCtrl.text = 'Laki-laki');
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: Text('Perempuan', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w600)),
+              onTap: () {
+                setState(() => _genderCtrl.text = 'Perempuan');
+                Navigator.pop(context);
+              },
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Widget Avatar ──
   Widget _buildAvatar() {
     Widget inner;
     if (_uploadingPhoto) {
@@ -256,139 +342,169 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
 
     return Scaffold(
       backgroundColor: _cream,
-      body: Column(children: [
-        // ── Header ──
-        Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft, end: Alignment.bottomRight,
-              colors: [Color(0xFFD63010), _redDark],
+      body: Column(
+        children: [
+          // ── Header (Merah) ──
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft, end: Alignment.bottomRight,
+                colors: [Color(0xFFD63010), _redDark],
+              ),
+            ),
+            child: Stack(
+              children: [
+                Positioned.fill(child: _blobsBg()),
+                SafeArea(
+                  bottom: false,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(4, 6, 20, 0),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                            Text('Edit Profil',
+                                style: GoogleFonts.nunito(
+                                    color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20)),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 14, 24, 30),
+                        child: Column(
+                          children: [
+                            _buildAvatar(),
+                            const SizedBox(height: 8),
+                            Text('Ketuk untuk ubah foto',
+                                style: GoogleFonts.nunito(color: Colors.white70, fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-          child: Stack(children: [
-            Positioned.fill(child: _blobsBg()),
-            SafeArea(
-              bottom: false,
-              child: Column(children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(4, 6, 20, 0),
-                  child: Row(children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    Text('Edit Profil',
-                        style: GoogleFonts.nunito(
-                            color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20)),
-                  ]),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 14, 24, 24),
-                  child: Column(children: [
-                    _buildAvatar(),
-                    const SizedBox(height: 8),
-                    Text('Ketuk untuk ubah foto',
-                        style: GoogleFonts.nunito(color: Colors.white70, fontSize: 12)),
-                  ]),
-                ),
-              ]),
-            ),
-          ]),
-        ),
 
-        // ── Form ──
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 30),
-            child: Column(children: [
-              _fieldCard(
-                icon: Icons.person_outline_rounded,
-                label: 'Nama Lengkap',
-                child: TextField(
-                  controller: _nameCtrl,
-                  style: GoogleFonts.nunito(
-                      fontSize: 15, color: _textBlack, fontWeight: FontWeight.w600),
-                  decoration: InputDecoration(
-                    hintText: 'Masukkan nama kamu',
-                    hintStyle: GoogleFonts.nunito(color: _textGray, fontSize: 14),
-                    border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero,
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── Form Fields ──
+                  _buildLabel('NAMA LENGKAP'),
+                  _buildTextField(controller: _nameCtrl, hint: 'Masukkan nama lengkap'),
+                  
+                  _buildLabel('EMAIL'),
+                  _buildTextField(controller: _emailCtrl, hint: 'Masukkan email', isReadOnly: true),
+                  
+                  _buildLabel('NO. TELEPON'),
+                  _buildTextField(controller: _phoneCtrl, hint: 'Masukkan no. telepon', keyboardType: TextInputType.phone),
+                  
+                  _buildLabel('TANGGAL LAHIR'),
+                  _buildTextField(
+                    controller: _dobCtrl, 
+                    hint: 'Pilih tanggal lahir', 
+                    isReadOnly: true,
+                    onTap: _pickDate,
                   ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              _fieldCard(
-                icon: Icons.phone_outlined,
-                label: 'Nomor Telepon',
-                child: TextField(
-                  controller: _phoneCtrl,
-                  keyboardType: TextInputType.phone,
-                  style: GoogleFonts.nunito(
-                      fontSize: 15, color: _textBlack, fontWeight: FontWeight.w600),
-                  decoration: InputDecoration(
-                    hintText: 'Contoh: 08123456789',
-                    hintStyle: GoogleFonts.nunito(color: _textGray, fontSize: 14),
-                    border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero,
+                  
+                  _buildLabel('JENIS KELAMIN'),
+                  _buildTextField(
+                    controller: _genderCtrl, 
+                    hint: 'Pilih jenis kelamin', 
+                    isReadOnly: true,
+                    onTap: _pickGender,
                   ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              _fieldCard(
-                icon: Icons.email_outlined,
-                label: 'Email',
-                child: Text(
-                  FirebaseAuth.instance.currentUser?.email ?? '-',
-                  style: GoogleFonts.nunito(
-                      fontSize: 15, color: _textGray, fontWeight: FontWeight.w600),
-                ),
-              ),
-              const SizedBox(height: 28),
-              SizedBox(
-                width: double.infinity, height: 52,
-                child: ElevatedButton(
-                  onPressed: _saving ? null : _save,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _red, foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: 3,
+                  
+                  const SizedBox(height: 32),
+                  
+                  // ── Tombol Simpan ──
+                  SizedBox(
+                    width: double.infinity, 
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _saving ? null : _save,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _orange, 
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 0,
+                      ),
+                      child: _saving
+                          ? const SizedBox(width: 24, height: 24,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                          : Text('Simpan Perubahan',
+                              style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 18)),
+                    ),
                   ),
-                  child: _saving
-                      ? const SizedBox(width: 24, height: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                      : Text('Simpan Perubahan',
-                          style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 16)),
-                ),
+                  const SizedBox(height: 20),
+                ],
               ),
-            ]),
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 
-  Widget _fieldCard({required IconData icon, required String label, required Widget child}) =>
-      Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 2))],
+  Widget _buildLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8, top: 16),
+      child: Text(
+        text,
+        style: GoogleFonts.nunito(
+          color: _labelGray,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.5,
         ),
-        child: Row(children: [
-          Container(
-            width: 42, height: 42,
-            decoration: BoxDecoration(color: const Color(0xFFFFF0DC), borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: _orange, size: 22),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    bool isReadOnly = false,
+    TextInputType keyboardType = TextInputType.text,
+    VoidCallback? onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TextField(
+        controller: controller,
+        readOnly: isReadOnly,
+        keyboardType: keyboardType,
+        onTap: onTap,
+        style: GoogleFonts.nunito(
+          fontSize: 16, 
+          color: _textBlack, 
+          fontWeight: FontWeight.w800,
+        ),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: GoogleFonts.nunito(color: Colors.grey[400], fontSize: 15, fontWeight: FontWeight.w600),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(label,
-                  style: GoogleFonts.nunito(fontSize: 11, color: _textGray, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 4),
-              child,
-            ]),
-          ),
-        ]),
-      );
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        ),
+      ),
+    );
+  }
 }
 
 // ── Bottom Sheet pilih avatar ──
@@ -515,3 +631,4 @@ Widget _blobsBg() => Stack(children: [
           decoration: BoxDecoration(shape: BoxShape.circle,
               color: Colors.white.withValues(alpha: 0.05)))),
 ]);
+
