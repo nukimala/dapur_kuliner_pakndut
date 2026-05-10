@@ -8,14 +8,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/database_helper.dart';
 import '../widgets/shared_bottom_nav.dart';
 import '../nav_helper.dart';
+import '../theme/app_theme.dart';
 
-const _red      = Color(0xFFC0321A);
-const _redDark  = Color(0xFF8B1A0A);
-const _orange   = Color(0xFFF5A524);
-const _cream    = Color(0xFFF7F0E6);
-const _textBlack = Color(0xFF1C1C1C);
-const _textGray  = Color(0xFF888888);
-const _green     = Color(0xFF2BB84A);
+const _red      = AppTheme.red;
+const _redDark  = AppTheme.redDark;
+const _orange   = AppTheme.orange;
+const _cream    = AppTheme.cream;
+const _textBlack = AppTheme.textBlack;
+const _textGray  = AppTheme.textGray;
+const _green     = AppTheme.success;
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -95,7 +96,7 @@ class _CartScreenState extends State<CartScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF7F0E6),
+                  color: AppTheme.cream,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -213,7 +214,7 @@ class _CartScreenState extends State<CartScreen> {
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-                  colors: [Color(0xFFD63010), _redDark]),
+                  colors: [AppTheme.red, _redDark]),
             ),
             child: Stack(children: [
               Positioned.fill(child: _blobs()),

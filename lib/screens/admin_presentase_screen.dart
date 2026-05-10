@@ -2,15 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../theme/app_theme.dart';
 
 // ── Design tokens (match buyer home)
-const _redGrad1  = Color(0xFFD63010);
-const _redDark   = Color(0xFF8B1A0A);
+const _redGrad1  = AppTheme.red;
+const _redDark   = AppTheme.redDark;
 const _redCard   = Color(0xFF9B1A0B);
-const _orange    = Color(0xFFF5A524);
-const _cream     = Color(0xFFF7F0E6);
-const _textBlack = Color(0xFF1C1C1C);
-const _textGray  = Color(0xFF888888);
+const _orange    = AppTheme.orange;
+const _cream     = AppTheme.cream;
+const _textBlack = AppTheme.textBlack;
+const _textGray  = AppTheme.textGray;
 
 // Palet warna untuk bar / progress
 final _barColors = [
@@ -20,13 +21,13 @@ final _barColors = [
   const Color(0xFFD02E15),
   const Color(0xFFE8331A),
   const Color(0xFFCC2A12),
-  const Color(0xFFF5A524), // last bar = orange (like prototype)
+  AppTheme.orange, // last bar = orange (like prototype)
 ];
 
 final _menuColors = [
   const Color(0xFFE8331A),
-  const Color(0xFFF5A524),
-  const Color(0xFF2BB84A),
+  AppTheme.orange,
+  AppTheme.success,
   const Color(0xFF2980B9),
   const Color(0xFF9B59B6),
 ];

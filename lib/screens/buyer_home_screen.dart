@@ -54,7 +54,7 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('${menu.name} ditambahkan ke keranjang! 🛒'),
-        backgroundColor: const Color(0xFF2BB84A),
+        backgroundColor: AppTheme.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         duration: const Duration(seconds: 2),
@@ -87,7 +87,7 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                colors: [Color(0xFFF91605), Color(0xFF631105)], // matched with login_screen design colors
+                colors: [AppTheme.redLight, Color(0xFF631105)], // matched with login_screen design colors
               ),
             ),
             child: Stack(

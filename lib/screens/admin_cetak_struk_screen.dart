@@ -5,12 +5,13 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../theme/app_theme.dart';
 
-const _redDark   = Color(0xFF8B1A0A);
-const _orange    = Color(0xFFF5A524);
-const _cream     = Color(0xFFF7F0E6);
-const _textBlack = Color(0xFF1C1C1C);
-const _textGray  = Color(0xFF888888);
+const _redDark   = AppTheme.redDark;
+const _orange    = AppTheme.orange;
+const _cream     = AppTheme.cream;
+const _textBlack = AppTheme.textBlack;
+const _textGray  = AppTheme.textGray;
 
 // ─────────────────────────────────────────────────────────────────────────────
 class AdminCetakStrukScreen extends StatelessWidget {
@@ -61,7 +62,7 @@ class AdminCetakStrukScreen extends StatelessWidget {
             _buildDeleteOption(
               context,
               icon: Icons.delete_sweep,
-              iconColor: const Color(0xFFD63010),
+              iconColor: AppTheme.red,
               title: 'Hapus Semua Pesanan',
               subtitle: 'Semua pesanan, baik selesai maupun diproses',
               onTap: () {
@@ -111,7 +112,7 @@ class AdminCetakStrukScreen extends StatelessWidget {
               _executeDelete(context, targetStatus);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFD63010),
+              backgroundColor: AppTheme.red,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             child: Text('Hapus', style: GoogleFonts.nunito(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -179,7 +180,7 @@ class AdminCetakStrukScreen extends StatelessWidget {
       backgroundColor: _cream,
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showDeleteOptions(context),
-        backgroundColor: const Color(0xFFD63010),
+        backgroundColor: AppTheme.red,
         elevation: 4,
         tooltip: 'Hapus Histori',
         child: const Icon(Icons.delete_sweep, color: Colors.white),
@@ -191,7 +192,7 @@ class AdminCetakStrukScreen extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFFD63010), _redDark],
+              colors: [AppTheme.red, _redDark],
             ),
           ),
           child: Stack(children: [
@@ -228,7 +229,7 @@ class AdminCetakStrukScreen extends StatelessWidget {
             builder: (ctx, snap) {
               if (snap.connectionState == ConnectionState.waiting) {
                 return const Center(
-                    child: CircularProgressIndicator(color: Color(0xFFD63010)));
+                    child: CircularProgressIndicator(color: AppTheme.red));
               }
               if (!snap.hasData || snap.data!.docs.isEmpty) {
                 return Center(
@@ -380,7 +381,7 @@ class _OrderCard extends StatelessWidget {
             Text('Total Bayar', style: GoogleFonts.nunito(color: _textGray, fontSize: 11)),
             Text(_fmt(total),
                 style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w900,
-                    color: const Color(0xFFD63010))),
+                    color: AppTheme.red)),
           ]),
           ElevatedButton.icon(
             onPressed: () => _showStrukPreview(context, orderId, items, total, tanggal, userName),
@@ -595,7 +596,7 @@ class _StrukSheet extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: const BoxDecoration(
-            color: Color(0xFFD63010),
+            color: AppTheme.red,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Row(children: [
@@ -614,7 +615,7 @@ class _StrukSheet extends StatelessWidget {
             // Nama toko
             Text('DAPUR KULINER PAK NDUT',
                 style: GoogleFonts.nunito(fontWeight: FontWeight.w900,
-                    fontSize: 15, color: const Color(0xFFD63010))),
+                    fontSize: 15, color: AppTheme.red)),
             Text('================================',
                 style: GoogleFonts.sourceCodePro(fontSize: 12, color: _textGray)),
             _row2('No. Order:', '#$shortId'),
@@ -653,7 +654,7 @@ class _StrukSheet extends StatelessWidget {
               Text(_fmt(total),
                   style: GoogleFonts.sourceCodePro(
                       fontWeight: FontWeight.bold, fontSize: 14,
-                      color: const Color(0xFFD63010))),
+                      color: AppTheme.red)),
             ]),
             const SizedBox(height: 8),
             Text('================================',
@@ -687,7 +688,7 @@ class _StrukSheet extends StatelessWidget {
                   icon: const Icon(Icons.print, size: 18),
                   label: Text('Cetak', style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD63010),
+                    backgroundColor: AppTheme.red,
                     foregroundColor: Colors.white,
                     minimumSize: const Size(0, 48),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

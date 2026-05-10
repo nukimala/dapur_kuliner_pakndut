@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
+import '../theme/app_theme.dart';
 
 
 
@@ -22,9 +23,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscureConfirm = true;
   bool _agreed = true;
 
-  static const _red = Color(0xFFCC2A2A);
-  static const _orange = Color(0xFFF5A623);
-  static const _orange2 = Color(0xFFE8920A);
+  static const _red = AppTheme.error;
+  static const _orange = AppTheme.orange;
+  static const _orange2 = AppTheme.orangeDark;
 
   void _register() async {
     if (_passwordController.text != _confirmPasswordController.text) {
@@ -91,7 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F2EC),
+      backgroundColor: AppTheme.cream,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -255,7 +256,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildField(TextEditingController ctrl, String hint, IconData icon, {TextInputType keyboardType = TextInputType.text}) {
     return Container(
-      decoration: BoxDecoration(color: const Color(0xFFF7F2EC), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: AppTheme.cream, borderRadius: BorderRadius.circular(12)),
       child: Row(children: [
         const SizedBox(width: 12),
         Icon(icon, color: const Color(0xFFBFB8B0), size: 18),
@@ -275,7 +276,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildPasswordField(TextEditingController ctrl, String hint, bool obscure, VoidCallback toggle) {
     return Container(
-      decoration: BoxDecoration(color: const Color(0xFFF7F2EC), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: AppTheme.cream, borderRadius: BorderRadius.circular(12)),
       child: Row(children: [
         const SizedBox(width: 12),
         const Icon(Icons.lock_outline, color: Color(0xFFBFB8B0), size: 18),

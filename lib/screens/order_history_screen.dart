@@ -7,14 +7,15 @@ import '../services/database_helper.dart';
 import '../widgets/shared_bottom_nav.dart';
 import '../nav_helper.dart';
 import 'cart_screen.dart';
+import '../theme/app_theme.dart';
 
-const _redDark  = Color(0xFF8B1A0A);
-const _orange   = Color(0xFFF5A524);
+const _redDark  = AppTheme.redDark;
+const _orange   = AppTheme.orange;
 const _orangeL  = Color(0xFFFFCA57);
-const _cream    = Color(0xFFF7F0E6);
-const _textBlack = Color(0xFF1C1C1C);
-const _textGray  = Color(0xFF888888);
-const _green     = Color(0xFF2BB84A);
+const _cream    = AppTheme.cream;
+const _textBlack = AppTheme.textBlack;
+const _textGray  = AppTheme.textGray;
+const _green     = AppTheme.success;
 const _redBtn    = Color(0xFFE8331A);
 
 class OrderHistoryScreen extends StatefulWidget {
@@ -65,7 +66,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-                  colors: [Color(0xFFD63010), _redDark]),
+                  colors: [AppTheme.red, _redDark]),
             ),
             child: Stack(children: [
               Positioned.fill(child: _blobs()),
@@ -172,7 +173,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                               return Padding(
                                 padding: EdgeInsets.only(bottom: e.$1 < items.length - 1 ? 4 : 0),
                                 child: Text('${e.$1 + 1}. $name ×$qty',
-                                    style: GoogleFonts.nunito(fontSize: 13, color: const Color(0xFF555555))),
+                                    style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textMid)),
                               );
                             }).toList(),
                           ),

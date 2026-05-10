@@ -4,13 +4,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'login_screen.dart';
 import '../services/auth_service.dart';
+import '../theme/app_theme.dart';
 
-const _redDark  = Color(0xFF8B1A0A);
-const _orange   = Color(0xFFF5A524);
+const _redDark  = AppTheme.redDark;
+const _orange   = AppTheme.orange;
 const _redBtn   = Color(0xFFE8331A);
-const _textBlack = Color(0xFF1C1C1C);
-const _textGray  = Color(0xFF888888);
-const _textMid   = Color(0xFF555555);
+const _textBlack = AppTheme.textBlack;
+const _textGray  = AppTheme.textGray;
+const _textMid   = AppTheme.textMid;
 
 class KeluarScreen extends StatelessWidget {
   final VoidCallback onConfirm;
@@ -23,12 +24,12 @@ class KeluarScreen extends StatelessWidget {
     final email = user?.email ?? '-';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F0E6),
+      backgroundColor: AppTheme.cream,
       body: Column(children: [
         Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-                colors: [Color(0xFFD63010), _redDark]),
+                colors: [AppTheme.red, _redDark]),
           ),
           child: Stack(children: [
             Positioned.fill(child: _blobs()),

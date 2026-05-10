@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'ganti_sandi_screen.dart';
 import 'riwayat_login_screen.dart';
+import '../theme/app_theme.dart';
 
-const _redDark  = Color(0xFF8B1A0A);
-const _green    = Color(0xFF2BB84A);
-const _textBlack = Color(0xFF1C1C1C);
-const _textGray  = Color(0xFF888888);
+const _redDark  = AppTheme.redDark;
+const _green    = AppTheme.success;
+const _textBlack = AppTheme.textBlack;
+const _textGray  = AppTheme.textGray;
 
 class KeamananScreen extends StatelessWidget {
   const KeamananScreen({super.key});
@@ -14,7 +15,7 @@ class KeamananScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F0E6),
+      backgroundColor: AppTheme.cream,
       body: Column(children: [
         _header(context, title: 'Keamanan'),
         Expanded(child: Padding(
@@ -99,7 +100,7 @@ Widget _menuRow({
 Widget _header(BuildContext context, {required String title}) => Container(
   decoration: const BoxDecoration(
     gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-        colors: [Color(0xFFD63010), _redDark]),
+        colors: [AppTheme.red, _redDark]),
   ),
   child: Stack(children: [
     Positioned.fill(child: _blobs()),

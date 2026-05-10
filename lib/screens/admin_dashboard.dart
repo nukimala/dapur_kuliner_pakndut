@@ -147,7 +147,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFCC1A0A), Color(0xFF8B1A0A)],
+          colors: [Color(0xFFCC1A0A), AppTheme.redDark],
         ),
       ),
       child: Stack(

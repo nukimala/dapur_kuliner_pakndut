@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../theme/app_theme.dart';
 
-const _orange = Color(0xFFF5A524);
-const _red    = Color(0xFFC0321A);
+const _orange = AppTheme.orange;
+const _red    = AppTheme.red;
 
 /// Shared bottom navigation bar used across all main buyer screens.
 /// [activeIndex]: 0=Beranda, 1=Keranjang, 2=Riwayat, 3=Profil

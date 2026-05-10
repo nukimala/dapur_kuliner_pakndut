@@ -11,13 +11,14 @@ import 'keamanan_screen.dart';
 import 'hubungi_cs_screen.dart';
 import 'beri_ulasan_screen.dart';
 import 'keluar_screen.dart';
+import '../theme/app_theme.dart';
 
-const _red      = Color(0xFFC0321A);
-const _redDark  = Color(0xFF8B1A0A);
-const _orange   = Color(0xFFF5A524);
-const _cream    = Color(0xFFF7F0E6);
-const _textBlack = Color(0xFF1C1C1C);
-const _textGray  = Color(0xFF888888);
+const _red      = AppTheme.red;
+const _redDark  = AppTheme.redDark;
+const _orange   = AppTheme.orange;
+const _cream    = AppTheme.cream;
+const _textBlack = AppTheme.textBlack;
+const _textGray  = AppTheme.textGray;
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -65,7 +66,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-                  colors: [Color(0xFFD63010), _redDark]),
+                  colors: [AppTheme.red, _redDark]),
             ),
             child: Stack(children: [
               Positioned.fill(child: _blobs()),

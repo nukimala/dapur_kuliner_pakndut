@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../theme/app_theme.dart';
 
-const _redDark  = Color(0xFF8B1A0A);
-const _orange   = Color(0xFFF5A524);
+const _redDark  = AppTheme.redDark;
+const _orange   = AppTheme.orange;
 const _redBtn   = Color(0xFFE8331A);
-const _textBlack = Color(0xFF1C1C1C);
-const _textMid   = Color(0xFF555555);
-const _green     = Color(0xFF2BB84A);
+const _textBlack = AppTheme.textBlack;
+const _textMid   = AppTheme.textMid;
+const _green     = AppTheme.success;
 
 class BeriUlasanScreen extends StatefulWidget {
   const BeriUlasanScreen({super.key});
@@ -89,12 +90,12 @@ class _BeriUlasanScreenState extends State<BeriUlasanScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F0E6),
+      backgroundColor: AppTheme.cream,
       body: Column(children: [
         Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-                colors: [Color(0xFFD63010), _redDark]),
+                colors: [AppTheme.red, _redDark]),
           ),
           child: Stack(children: [
             Positioned.fill(child: _blobs()),

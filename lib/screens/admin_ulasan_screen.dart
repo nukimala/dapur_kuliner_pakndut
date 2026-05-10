@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import '../theme/app_theme.dart';
 
-const _redDark   = Color(0xFF8B1A0A);
-const _orange    = Color(0xFFF5A524);
-const _cream     = Color(0xFFF7F0E6);
-const _textBlack = Color(0xFF1C1C1C);
-const _textMid   = Color(0xFF555555);
-const _textGray  = Color(0xFF888888);
+const _redDark   = AppTheme.redDark;
+const _orange    = AppTheme.orange;
+const _cream     = AppTheme.cream;
+const _textBlack = AppTheme.textBlack;
+const _textMid   = AppTheme.textMid;
+const _textGray  = AppTheme.textGray;
 
 class AdminUlasanScreen extends StatelessWidget {
   const AdminUlasanScreen({super.key});
@@ -23,7 +24,7 @@ class AdminUlasanScreen extends StatelessWidget {
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft, end: Alignment.bottomRight,
-              colors: [Color(0xFFD63010), _redDark],
+              colors: [AppTheme.red, _redDark],
             ),
           ),
           child: Stack(children: [
@@ -60,7 +61,7 @@ class AdminUlasanScreen extends StatelessWidget {
             builder: (ctx, snap) {
               if (snap.connectionState == ConnectionState.waiting) {
                 return const Center(
-                    child: CircularProgressIndicator(color: Color(0xFFD63010)));
+                    child: CircularProgressIndicator(color: AppTheme.red));
               }
               if (!snap.hasData || snap.data!.docs.isEmpty) {
                 return Center(
@@ -263,10 +264,10 @@ class _UlasanCardState extends State<_UlasanCard> {
               decoration: BoxDecoration(
                 color: const Color(0xFFE8F8EF), borderRadius: BorderRadius.circular(20)),
               child: Row(children: [
-                const Text('✓', style: TextStyle(color: Color(0xFF2BB84A), fontSize: 13)),
+                const Text('✓', style: TextStyle(color: AppTheme.success, fontSize: 13)),
                 const SizedBox(width: 3),
                 Text('Dibalas', style: GoogleFonts.nunito(
-                    color: const Color(0xFF2BB84A), fontSize: 12, fontWeight: FontWeight.w700)),
+                    color: AppTheme.success, fontSize: 12, fontWeight: FontWeight.w700)),
               ]),
             ),
         ]),
@@ -316,10 +317,10 @@ class _UlasanCardState extends State<_UlasanCard> {
             GestureDetector(
               onTap: () => setState(() { _showReply = true; }),
               child: Row(children: [
-                const Icon(Icons.reply, size: 16, color: Color(0xFFD63010)),
+                const Icon(Icons.reply, size: 16, color: AppTheme.red),
                 const SizedBox(width: 4),
                 Text('Balas ulasan',
-                    style: GoogleFonts.nunito(color: const Color(0xFFD63010),
+                    style: GoogleFonts.nunito(color: AppTheme.red,
                         fontSize: 12, fontWeight: FontWeight.w600)),
               ]),
             ),
@@ -347,7 +348,7 @@ class _UlasanCardState extends State<_UlasanCard> {
               ElevatedButton(
                 onPressed: _saving ? null : _kirimBalasan,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFD63010),
+                  backgroundColor: AppTheme.red,
                   foregroundColor: Colors.white,
                   minimumSize: const Size(90, 36),
                   padding: const EdgeInsets.symmetric(horizontal: 16),

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../theme/app_theme.dart';
 
-const _redDark  = Color(0xFF8B1A0A);
-const _orange   = Color(0xFFF5A524);
-const _textBlack = Color(0xFF1C1C1C);
-const _textGray  = Color(0xFF888888);
+const _redDark  = AppTheme.redDark;
+const _orange   = AppTheme.orange;
+const _textBlack = AppTheme.textBlack;
+const _textGray  = AppTheme.textGray;
 const _green     = Color(0xFF25D366);
 const _blue      = Color(0xFF2980B9);
 const _redBtn    = Color(0xFFE8331A);
@@ -28,12 +29,12 @@ class HubungiCSScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F0E6),
+      backgroundColor: AppTheme.cream,
       body: Column(children: [
         Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-                colors: [Color(0xFFD63010), _redDark]),
+                colors: [AppTheme.red, _redDark]),
           ),
           child: Stack(children: [
             Positioned.fill(child: _blobs()),
@@ -132,8 +133,8 @@ class HubungiCSScreen extends StatelessWidget {
                 ...schedule.map((row) => Padding(
                   padding: const EdgeInsets.only(bottom: 7),
                   child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    Text(row[0], style: GoogleFonts.nunito(fontSize: 13, color: const Color(0xFF555555))),
-                    Text(row[1], style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF555555))),
+                    Text(row[0], style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textMid)),
+                    Text(row[1], style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textMid)),
                   ]),
                 )),
               ]),

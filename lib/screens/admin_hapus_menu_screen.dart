@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/menu_model.dart';
+import '../theme/app_theme.dart';
 
-const _red     = Color(0xFFC0321A);
-const _redDark = Color(0xFF8B1A0A);
-const _orange  = Color(0xFFF5A524);
-const _cream   = Color(0xFFF7F0E6);
-const _textBlack = Color(0xFF1C1C1C);
-const _textMid   = Color(0xFF555555);
-const _textGray  = Color(0xFF888888);
+const _red     = AppTheme.red;
+const _redDark = AppTheme.redDark;
+const _orange  = AppTheme.orange;
+const _cream   = AppTheme.cream;
+const _textBlack = AppTheme.textBlack;
+const _textMid   = AppTheme.textMid;
+const _textGray  = AppTheme.textGray;
 
 class AdminHapusMenuScreen extends StatefulWidget {
   final MenuModel menu;
@@ -34,7 +35,7 @@ class _AdminHapusMenuScreenState extends State<AdminHapusMenuScreen> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Menu berhasil dihapus!',
             style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
-          backgroundColor: const Color(0xFF2BB84A),
+          backgroundColor: AppTheme.success,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ));
@@ -65,7 +66,7 @@ class _AdminHapusMenuScreenState extends State<AdminHapusMenuScreen> {
         Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-                colors: [Color(0xFFD63010), _redDark]),
+                colors: [AppTheme.red, _redDark]),
           ),
           child: Stack(children: [
             Positioned(right: -30, top: -50, child: Container(width: 160, height: 160,
@@ -160,7 +161,7 @@ class _AdminHapusMenuScreenState extends State<AdminHapusMenuScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 15),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [Color(0xFFD63010), _redDark]),
+                    gradient: const LinearGradient(colors: [AppTheme.red, _redDark]),
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [BoxShadow(color: _red.withValues(alpha: 0.4), blurRadius: 20)],
                   ),
@@ -188,7 +189,7 @@ class _TrianglePainter extends CustomPainter {
       ..lineTo(6, size.height - 4)
       ..close();
 
-    canvas.drawPath(path, Paint()..color = const Color(0xFFD63010));
+    canvas.drawPath(path, Paint()..color = AppTheme.red);
 
     final innerPath = Path()
       ..moveTo(size.width / 2, 16)

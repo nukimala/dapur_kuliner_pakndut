@@ -5,12 +5,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import '../theme/app_theme.dart';
 
-const _red       = Color(0xFFC0321A);
-const _redDark   = Color(0xFF8B1A0A);
-const _orange    = Color(0xFFF5A524);
-const _cream     = Color(0xFFF7F0E6);
-const _textBlack = Color(0xFF1C1C1C);
+const _red       = AppTheme.red;
+const _redDark   = AppTheme.redDark;
+const _orange    = AppTheme.orange;
+const _cream     = AppTheme.cream;
+const _textBlack = AppTheme.textBlack;
 const _textGray  = Color(0xFFAAAAAA);
 const _labelGray = Color(0xFFB0A496); // Color for labels like NAMA LENGKAP
 
@@ -349,7 +350,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft, end: Alignment.bottomRight,
-                colors: [Color(0xFFD63010), _redDark],
+                colors: [AppTheme.red, _redDark],
               ),
             ),
             child: Stack(
@@ -578,7 +579,7 @@ class _AvatarPickerSheet extends StatelessWidget {
                 duration: const Duration(milliseconds: 200),
                 width: 52, height: 52,
                 decoration: BoxDecoration(
-                  color: selected ? const Color(0xFFFFF0DC) : const Color(0xFFF7F0E6),
+                  color: selected ? const Color(0xFFFFF0DC) : AppTheme.cream,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: selected ? _orange : Colors.transparent, width: 2.5),

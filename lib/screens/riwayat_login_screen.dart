@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../theme/app_theme.dart';
 
-const _redDark   = Color(0xFF8B1A0A);
-const _redGrad   = Color(0xFFD63010);
-const _orange    = Color(0xFFF5A524);
-const _green     = Color(0xFF2BB84A);
-const _textBlack = Color(0xFF1C1C1C);
-const _textGray  = Color(0xFF888888);
-const _cream     = Color(0xFFF7F0E6);
+const _redDark   = AppTheme.redDark;
+const _redGrad   = AppTheme.red;
+const _orange    = AppTheme.orange;
+const _green     = AppTheme.success;
+const _textBlack = AppTheme.textBlack;
+const _textGray  = AppTheme.textGray;
+const _cream     = AppTheme.cream;
 
 const _bulan = [
   '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',

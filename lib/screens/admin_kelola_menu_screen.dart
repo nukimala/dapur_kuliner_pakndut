@@ -5,14 +5,15 @@ import '../models/menu_model.dart';
 import 'admin_tambah_menu_screen.dart';
 import 'admin_edit_menu_screen.dart';
 import 'admin_hapus_menu_screen.dart';
+import '../theme/app_theme.dart';
 
-const _red     = Color(0xFFC0321A);
-const _redDark = Color(0xFF8B1A0A);
-const _orange  = Color(0xFFF5A524);
-const _cream   = Color(0xFFF7F0E6);
-const _textBlack = Color(0xFF1C1C1C);
-const _textMid   = Color(0xFF555555);
-const _textGray  = Color(0xFF888888);
+const _red     = AppTheme.red;
+const _redDark = AppTheme.redDark;
+const _orange  = AppTheme.orange;
+const _cream   = AppTheme.cream;
+const _textBlack = AppTheme.textBlack;
+const _textMid   = AppTheme.textMid;
+const _textGray  = AppTheme.textGray;
 
 class AdminKelolaMenuScreen extends StatefulWidget {
   const AdminKelolaMenuScreen({super.key});
@@ -39,7 +40,7 @@ class _AdminKelolaMenuScreenState extends State<AdminKelolaMenuScreen> {
         Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-                colors: [Color(0xFFD63010), _redDark]),
+                colors: [AppTheme.red, _redDark]),
           ),
           child: Stack(children: [
             Positioned(right: -30, top: -50, child: Container(width: 160, height: 160,

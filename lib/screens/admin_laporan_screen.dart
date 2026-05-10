@@ -4,26 +4,27 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../theme/app_theme.dart';
 
 // ── Warna
-const _redGrad1  = Color(0xFFD63010);
-const _redDark   = Color(0xFF8B1A0A);
+const _redGrad1  = AppTheme.red;
+const _redDark   = AppTheme.redDark;
 const _redCard   = Color(0xFF7F0000);
-const _orange    = Color(0xFFF5A524);
-const _cream     = Color(0xFFF7F0E6);
-const _textBlack = Color(0xFF1C1C1C);
-const _textGray  = Color(0xFF888888);
+const _orange    = AppTheme.orange;
+const _cream     = AppTheme.cream;
+const _textBlack = AppTheme.textBlack;
+const _textGray  = AppTheme.textGray;
 
 final _barColorsRed = [
   const Color(0xFFCC2813), const Color(0xFFCC2813), const Color(0xFFCC2813),
   const Color(0xFFCC2813), const Color(0xFFCC2813), const Color(0xFFCC2813),
-  const Color(0xFFF5A524), // last bar = orange
+  AppTheme.orange, // last bar = orange
 ];
 
 final _menuColors = [
   const Color(0xFFE8331A),
-  const Color(0xFFF5A524),
-  const Color(0xFF2BB84A),
+  AppTheme.orange,
+  AppTheme.success,
   const Color(0xFF2980B9),
   const Color(0xFF9B59B6),
 ];
@@ -333,7 +334,7 @@ class _AdminLaporanScreenState extends State<AdminLaporanScreen> {
                                 ),
                                 child: Text(p,
                                   style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w700,
-                                      color: sel ? Colors.white : const Color(0xFF555555))),
+                                      color: sel ? Colors.white : AppTheme.textMid)),
                               ),
                             ),
                           );
@@ -526,7 +527,7 @@ class _BarChart extends StatelessWidget {
       children: bars.asMap().entries.map((e) {
         final isLast    = e.key == bars.length - 1;
         final ratio     = maxVal > 0 ? e.value.value / maxVal : 0.0;
-        final barColor  = isLast ? const Color(0xFFF5A524)
+        final barColor  = isLast ? AppTheme.orange
             : (e.key < barColors.length ? barColors[e.key] : const Color(0xFFCC2813));
         return Expanded(child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 3),
