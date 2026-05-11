@@ -38,19 +38,29 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
   @override
   void initState() { super.initState(); _loadCart(); }
 
+  // Fungsi untuk memuat dan menghitung jumlah barang di dalam keranjang SQLite
   Future<void> _loadCart() async {
     final items = await _db.getCartItems(_uid);
     int c = 0;
+    // Menjumlahkan total barang (bukan jenisnya, tapi kuantitasnya)
     for (var i in items) {
       c += i.quantity;
     }
     if (mounted) setState(() => _cartCount = c);
   }
 
+  // Fungsi yang dipanggil ketika pembeli menekan tombol "+" pada sebuah menu
   Future<void> _addToCart(MenuModel menu) async {
     if (_uid.isEmpty) return;
+    
+    // 1. Menyimpan data menu yang dipilih ke database lokal HP (SQLite)
+    // Tujuannya agar pesanan tidak hilang jika HP mati/keluar aplikasi
     await _db.addToCart(CartItemModel(menuId: menu.id!, quantity: 1, userUid: _uid));
+    
+    // 2. Refresh angka jumlah keranjang di ikon bawah
     _loadCart();
+    
+    // 3. Memunculkan notifikasi sukses (hijau) di bagian bawah layar
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('${menu.name} ditambahkan ke keranjang! 🛒'),
@@ -215,6 +225,8 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
+                  // Mengambil data menu dari database Firestore secara real-time
+                  // Jika admin menambah/menghapus menu, daftar ini akan otomatis ter-update tanpa perlu refresh
                   StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance.collection('menus').snapshots(),
                     builder: (context, snap) {

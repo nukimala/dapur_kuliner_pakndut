@@ -28,17 +28,23 @@ class _LoginScreenState extends State<LoginScreen> {
   static const _textDark = AppTheme.textBlack;
   static const _textGrey = AppTheme.textGray;
 
+  // Fungsi ini dipanggil saat tombol "Login" ditekan
   void _login() async {
     setState(() => _isLoading = true);
     try {
+      // 1. Memanggil servis untuk login dengan email dan password
       final user = await _authService.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+      
       if (user != null && mounted) {
+        // 2. PENGECEKAN JABATAN (ROLE CHECKING)
+        // Jika data pengguna memiliki label 'admin', buka halaman khusus Admin
         if (user.role == 'admin') {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AdminDashboard()));
         } else {
+          // Jika tidak memiliki label 'admin' (pasti buyer), buka halaman biasa
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const BuyerHomeScreen()));
         }
       }
@@ -89,11 +95,15 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // Fungsi ini dipanggil saat tombol "Login dengan Google" ditekan
   void _googleSignIn() async {
     setState(() => _isLoading = true);
     try {
+      // 1. Memanggil servis login Google (Popup pilihan akun Gmail)
       final user = await _authService.signInWithGoogle();
+      
       if (user != null && mounted) {
+        // 2. PENGECEKAN JABATAN SAMA SEPERTI DI ATAS
         if (user.role == 'admin') {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AdminDashboard()));
         } else {

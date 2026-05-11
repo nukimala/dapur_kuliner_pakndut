@@ -174,8 +174,12 @@ class _CartScreenState extends State<CartScreen> {
                     label: Text('Ya, Kirim!', style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 14)),
                     onPressed: () async {
                       Navigator.pop(ctx);
+                      
+                      // 1. Mempersiapkan link WhatsApp berisi teks pesanan yang sudah disusun
                       final url = Uri.parse("https://wa.me/$phone?text=${Uri.encodeComponent(message)}");
                       try {
+                        // 2. Merekam pesanan ke Database Firestore (Koleksi 'orders')
+                        // Ini yang akan memicu notifikasi di Dashboard Admin!
                         final order = OrderModel(
                           buyerUid: user?.uid ?? '', buyerName: name, totalPrice: _subtotal,
                           status: 'Pending', timestamp: DateTime.now(),
@@ -183,8 +187,12 @@ class _CartScreenState extends State<CartScreen> {
                         );
                         await FirebaseFirestore.instance.collection('orders').add(order.toMap());
                       } catch (_) {}
+                      
+                      // 3. Setelah sukses dicatat, bersihkan keranjang belanja di HP (SQLite)
                       await _db.clearCart(_uid);
                       if (mounted) setState(() => _items.clear());
+                      
+                      // 4. Buka aplikasi WhatsApp pembeli secara otomatis
                       try {
                         await launchUrl(url, mode: LaunchMode.externalApplication);
                       } catch (_) {

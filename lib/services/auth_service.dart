@@ -10,29 +10,32 @@ class AuthService {
   // Listen to auth state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // Sign In
+  // Fungsi untuk Login menggunakan Email & Password bawaan Firebase
   Future<UserModel?> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
     try {
+      // 1. Mencoba login ke Firebase Authentication (sistem akun Google)
       UserCredential credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       ).timeout(const Duration(seconds: 10));
 
-      // Fetch user role/data from Firestore
+      // 2. Jika berhasil login, kita cek datanya
       if (credential.user != null) {
+        // 3. Wajibkan pengguna memverifikasi email (klik link di email)
         if (!credential.user!.emailVerified) {
           await _auth.signOut();
           throw Exception('email-not-verified');
         }
 
-          DocumentSnapshot doc = await _firestore
-              .collection('users')
-              .doc(credential.user!.uid)
-              .get()
-              .timeout(const Duration(seconds: 10));
+        // 4. Mengambil data lengkap profil pengguna dari Firestore (termasuk Role/Jabatan)
+        DocumentSnapshot doc = await _firestore
+            .collection('users')
+            .doc(credential.user!.uid)
+            .get()
+            .timeout(const Duration(seconds: 10));
 
         if (doc.exists) {
           return UserModel.fromMap(
@@ -45,21 +48,25 @@ class AuthService {
     }
   }
 
-  // Google Sign In
+  // Fungsi untuk Login menggunakan akun Google (SSO)
   Future<UserModel?> signInWithGoogle() async {
     try {
+      // 1. Memunculkan pop-up pilihan akun Google di HP
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return null; // User canceled
+      if (googleUser == null) return null; // Jika dibatalkan oleh user
 
+      // 2. Mendapatkan token otentikasi dari Google
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
+      // 3. Login ke Firebase menggunakan token Google tersebut
       UserCredential userCredential = await _auth.signInWithCredential(credential).timeout(const Duration(seconds: 15));
 
       if (userCredential.user != null) {
+        // 4. Cek apakah user Google ini sudah pernah daftar sebelumnya di Firestore
         DocumentSnapshot doc = await _firestore
             .collection('users')
             .doc(userCredential.user!.uid)
@@ -67,6 +74,7 @@ class AuthService {
             .timeout(const Duration(seconds: 10));
 
         if (!doc.exists) {
+          // 5a. JIKA BELUM PERNAH DAFTAR: Buat akun baru di Firestore dengan role default 'buyer'
           UserModel newUser = UserModel(
             uid: userCredential.user!.uid,
             email: googleUser.email,
@@ -76,6 +84,7 @@ class AuthService {
           await _firestore.collection('users').doc(newUser.uid).set(newUser.toMap()).timeout(const Duration(seconds: 10));
           return newUser;
         } else {
+          // 5b. JIKA SUDAH PERNAH DAFTAR: Tarik datanya dari Firestore
           return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
         }
       }
@@ -87,7 +96,7 @@ class AuthService {
     }
   }
 
-  // Register
+  // Fungsi untuk Mendaftar (Register) Akun Baru
   Future<UserModel?> registerWithEmailAndPassword({
     required String email,
     required String password,
@@ -95,12 +104,14 @@ class AuthService {
     required String role,
   }) async {
     try {
+      // 1. Buat akun baru di Firebase Authentication
       UserCredential credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       ).timeout(const Duration(seconds: 10));
 
       if (credential.user != null) {
+        // 2. Siapkan data profil pengguna baru (termasuk Role-nya)
         UserModel newUser = UserModel(
           uid: credential.user!.uid,
           email: email,
@@ -108,16 +119,17 @@ class AuthService {
           role: role,
         );
 
+        // 3. Simpan data profil tersebut ke tabel 'users' di Firestore
         await _firestore
             .collection('users')
             .doc(newUser.uid)
             .set(newUser.toMap())
             .timeout(const Duration(seconds: 10));
 
-        // Send email verification
+        // 4. Kirim email verifikasi ke email yang didaftarkan
         await credential.user!.sendEmailVerification().timeout(const Duration(seconds: 10));
 
-        // Immediately sign out to force them to verify before they can actually use the app
+        // 5. Langsung paksa Log-Out agar pengguna memverifikasi emailnya sebelum bisa memakai aplikasi
         await _auth.signOut();
 
         return newUser;

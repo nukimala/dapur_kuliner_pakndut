@@ -28,6 +28,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
   StreamSubscription? _ordersSubscription;
   bool _isInitialLoad = true;
 
+  // Fungsi untuk otomatis menandai pesanan yang sudah berumur > 1 hari sebagai "Selesai"
+  // Ini berguna jika Admin lupa memproses pesanan / mencetak struk
   Future<void> _checkAndCompleteOldOrders() async {
     try {
       final snapshot = await FirebaseFirestore.instance.collection('orders').get();
@@ -37,7 +39,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         final data = doc.data();
         final status = data['status']?.toString().toLowerCase() ?? 'pending';
         
-        // Lewati jika sudah selesai atau dibatalkan
+        // Lewati pesanan yang memang sudah selesai atau dibatalkan
         if (status == 'selesai' || status == 'completed' || status == 'dibatalkan' || status == 'cancelled') {
           continue;
         }
@@ -48,7 +50,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
         
         if (time != null) {
           final orderDate = time.toDate();
+          // Jika selisih waktu antara sekarang dan waktu pesan >= 1 hari (24 jam)
           if (now.difference(orderDate).inDays >= 1) {
+            // Ubah statusnya menjadi Selesai di database
             await doc.reference.update({'status': 'Selesai'});
           }
         }
@@ -61,19 +65,25 @@ class _AdminDashboardState extends State<AdminDashboard> {
   @override
   void initState() {
     super.initState();
-    _checkAndCompleteOldOrders(); // Cek pesanan yang lebih dari 1 hari
+    // Panggil fungsi pembersih pesanan usang saat dashboard dibuka
+    _checkAndCompleteOldOrders(); 
     
+    // REAL-TIME LISTENER: Mendengarkan perubahan data pesanan di Firestore
+    // Snapshot ini akan bereaksi secara instan jika ada data baru masuk
     _ordersSubscription = FirebaseFirestore.instance
         .collection('orders')
         .where('status', isEqualTo: 'pending')
         .snapshots()
         .listen((snapshot) {
+      // Abaikan pesanan yang sudah ada sebelumnya (saat aplikasi pertama kali memuat data)
       if (_isInitialLoad) {
         _isInitialLoad = false;
-        return; // Abaikan pesanan lama saat pertama kali halaman dimuat
+        return; 
       }
+      // Jika ada perubahan berupa "Penambahan Data Baru" (Added)
       for (var change in snapshot.docChanges) {
         if (change.type == DocumentChangeType.added) {
+          // Panggil notifikasi di HP (bunyikan alarm pop-up)
           LocalNotifService().showNotification(
             id: change.doc.id.hashCode,
             title: 'Pesanan Baru Masuk! 🛒',

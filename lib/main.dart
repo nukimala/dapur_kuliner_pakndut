@@ -14,23 +14,28 @@ import 'screens/buyer_home_screen.dart';
 import 'screens/splash_screen.dart';
 
 @pragma('vm:entry-point')
+// Fungsi ini berjalan di latar belakang (background) untuk menerima notifikasi Firebase
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   debugPrint("Handling a background message: ${message.messageId}");
 }
 
 void main() async {
+  // Wajib dipanggil sebelum inisialisasi plugin Flutter lainnya
   WidgetsFlutterBinding.ensureInitialized();
-  // Initialize date formatting for localization (e.g., id_ID for Indonesia)
+  
+  // Menginisialisasi format tanggal lokal agar mendukung bahasa Indonesia (id_ID)
   await initializeDateFormatting('id_ID', null);
   
+  // Menghubungkan aplikasi Flutter ke project Firebase menggunakan konfigurasi otomatis
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   
+  // Mendaftarkan fungsi background untuk menerima pesan/notifikasi Push
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  await initializeDateFormatting('id_ID', null);
   
+  // Menjalankan aplikasi utama
   runApp(const MyApp());
 }
 
@@ -45,8 +50,10 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    // Initialize notification service to request permissions
+    // Meminta izin notifikasi (allow notification) dari pengguna saat aplikasi pertama dibuka
     NotificationService().initialize();
+    
+    // Menginisialisasi layanan notifikasi lokal (alarm/pop-up) yang dipakai Admin
     LocalNotifService().initialize();
   }
 
@@ -69,9 +76,11 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // StreamBuilder ini terus "mendengarkan" status login pengguna (login/logout)
     return StreamBuilder<User?>(
       stream: AuthService().authStateChanges,
       builder: (context, snapshot) {
+        // Jika sedang loading pengecekan status
         if (snapshot.connectionState == ConnectionState.waiting) {
            return const Scaffold(
             body: Center(
@@ -88,16 +97,21 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
+        // Mendapatkan data user yang sedang login dari Firebase Auth
         User? user = snapshot.data;
+        
+        // Jika tidak ada user yang login, lempar ke halaman Login
         if (user == null) {
           return const LoginScreen();
         }
 
+        // Memaksa pengguna memverifikasi email sebelum bisa masuk aplikasi
         if (!user.emailVerified) {
            return const LoginScreen();
         }
 
-        // We have an authenticated user. Now check their role from Firestore.
+        // Jika user sudah login dan email terverifikasi, 
+        // kita cek role (jabatan) mereka di database Firestore (tabel 'users')
         return FutureBuilder<UserModel?>(
           future: AuthService().getCurrentUserData(),
           builder: (context, userSnapshot) {
@@ -111,14 +125,17 @@ class AuthWrapper extends StatelessWidget {
 
              if (userSnapshot.hasData && userSnapshot.data != null) {
                 final userModel = userSnapshot.data!;
+                // PEMBAGIAN HAK AKSES (ROLE-BASED ROUTING)
+                // Jika role-nya admin, arahkan ke Dashboard Admin
                 if (userModel.role == 'admin') {
                   return const AdminDashboard();
                 } else {
+                  // Jika bukan admin (berarti buyer), arahkan ke Home Pembeli
                   return const BuyerHomeScreen();
                 }
              }
 
-             // Fallback if no user data found (shouldn't happen under normal circumstances)
+             // Jika terjadi error data tidak ditemukan, kembalikan ke halaman login
              return const LoginScreen();
           },
         );
